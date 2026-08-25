@@ -3,10 +3,14 @@
   "nodeModulesDir": "auto",
   "imports": {
     "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@0.109.1",
-    "@supabase/supabase-js": "jsr:@supabase/supabase-js@2"
+    "@supabase/supabase-js": "jsr:@supabase/supabase-js@2",
+    "stripe": "npm:stripe@19.2.0"
   },
   "compilerOptions": {
-    "lib": ["deno.window", "dom"],
+    "lib": [
+      "deno.window",
+      "dom"
+    ],
     "strict": true
   }
 }

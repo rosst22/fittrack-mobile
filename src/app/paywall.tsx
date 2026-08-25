@@ -1,14 +1,21 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as WebBrowser from 'expo-web-browser';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import type { PurchasesPackage } from 'react-native-purchases';
 
 import { Button, Card, ErrorNote, Loading, Muted, Row, SectionLabel } from '@/components/ui';
 import { colors, radius, spacing } from '@/constants/theme';
-import { FREE_LIMITS, PRO_LIMITS } from '@/lib/api';
+import { FREE_LIMITS, PRO_LIMITS, stripeCheckoutUrl } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { useEntitlement } from '@/lib/entitlement';
-import { getOfferings, isPurchasesAvailable, purchase, restore } from '@/lib/purchases';
+import {
+  getOfferings,
+  purchase,
+  purchasesUnavailableReason,
+  restore,
+  type Package,
+} from '@/lib/purchases';
 
 const PERKS: { icon: keyof typeof Ionicons.glyphMap; title: string; body: string }[] = [
   {
@@ -29,14 +36,18 @@ const PERKS: { icon: keyof typeof Ionicons.glyphMap; title: string; body: string
 ];
 
 export default function PaywallScreen() {
-  const { tier, refresh } = useEntitlement();
-  const [packages, setPackages] = useState<PurchasesPackage[] | null>(null);
+  const { session } = useAuth();
+  const { tier, source, refresh } = useEntitlement();
+  const [packages, setPackages] = useState<Package[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
+  const iapUnavailable = purchasesUnavailableReason();
+  const webUrl = session ? stripeCheckoutUrl(session.user.id) : null;
+
   useEffect(() => {
-    if (!isPurchasesAvailable()) {
+    if (iapUnavailable) {
       setPackages([]);
       return;
     }
@@ -46,24 +57,48 @@ export default function PaywallScreen() {
         setError(e instanceof Error ? e.message : 'Could not load plans.');
         setPackages([]);
       });
-  }, []);
+  }, [iapUnavailable]);
 
-  async function buy(pkg: PurchasesPackage) {
+  /** Pro is granted by a webhook, not by the app — poll briefly for it. */
+  async function waitForEntitlement(): Promise<boolean> {
+    for (let attempt = 0; attempt < 6; attempt++) {
+      await new Promise((r) => setTimeout(r, 1000));
+      if ((await refresh()) === 'pro') return true;
+    }
+    return false;
+  }
+
+  async function buy(pkg: Package) {
     setError(null);
     setNotice(null);
     setBusy(true);
     try {
-      const outcome = await purchase(pkg);
-      if (outcome === 'cancelled') return;
-      // StoreKit is done, but Pro is granted by our webhook, not by the app.
-      // Give it a moment, then re-read; if it has not landed, say so honestly
-      // rather than showing a success screen that is not true yet.
-      await new Promise((r) => setTimeout(r, 1500));
-      const next = await refresh();
-      if (next === 'pro') router.back();
-      else setNotice('Payment went through. Unlocking can take a moment — pull to refresh shortly.');
+      if ((await purchase(pkg)) === 'cancelled') return;
+      if (await waitForEntitlement()) router.back();
+      else setNotice('Payment went through. Unlocking can take a moment — check back shortly.');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'The purchase could not be completed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function buyOnWeb() {
+    if (!webUrl) return;
+    setError(null);
+    setNotice(null);
+    setBusy(true);
+    try {
+      // Opens an in-app browser and resolves when the user dismisses it, which
+      // is the cue to check whether the Stripe webhook has landed.
+      await WebBrowser.openBrowserAsync(webUrl);
+      if (await waitForEntitlement()) router.back();
+      else
+        setNotice(
+          'If you completed checkout, unlocking can take a moment. Reopen this screen shortly.'
+        );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not open checkout.');
     } finally {
       setBusy(false);
     }
@@ -92,15 +127,26 @@ export default function PaywallScreen() {
             <Ionicons name="checkmark-circle" size={26} color={colors.accent} />
             <Text style={styles.proTitle}>You&apos;re on FitTrack Pro</Text>
           </Row>
-          <Muted>
-            Manage or cancel any time in Settings → Apple ID → Subscriptions. Cancelling keeps Pro
-            until the end of the period you have paid for.
-          </Muted>
-          <Button
-            title="Manage subscription"
-            variant="secondary"
-            onPress={() => Linking.openURL('https://apps.apple.com/account/subscriptions')}
-          />
+          {source === 'stripe' ? (
+            <>
+              <Muted>
+                Billed on the web. Manage or cancel from the billing portal link in your receipt
+                email.
+              </Muted>
+            </>
+          ) : (
+            <>
+              <Muted>
+                Billed through your Apple ID. Cancelling keeps Pro until the end of the period you
+                have paid for.
+              </Muted>
+              <Button
+                title="Manage subscription"
+                variant="secondary"
+                onPress={() => Linking.openURL('https://apps.apple.com/account/subscriptions')}
+              />
+            </>
+          )}
         </Card>
       </ScrollView>
     );
@@ -137,16 +183,7 @@ export default function PaywallScreen() {
 
       {packages === null ? (
         <Loading />
-      ) : packages.length === 0 ? (
-        <Card>
-          <SectionLabel>Not available yet</SectionLabel>
-          <Muted>
-            In-app purchases are not configured on this build. This needs the RevenueCat key and an
-            App Store Connect subscription product, so it only works in a real build — not in Expo
-            Go.
-          </Muted>
-        </Card>
-      ) : (
+      ) : packages.length > 0 ? (
         packages.map((pkg) => (
           <Pressable
             key={pkg.identifier}
@@ -161,14 +198,33 @@ export default function PaywallScreen() {
             <Text style={styles.planPrice}>{pkg.product.priceString}</Text>
           </Pressable>
         ))
+      ) : (
+        <Card>
+          <SectionLabel>In-app purchase unavailable</SectionLabel>
+          <Muted>{iapUnavailable ?? 'No subscription products are configured yet.'}</Muted>
+        </Card>
+      )}
+
+      {webUrl && (
+        <>
+          <Row style={styles.orRow}>
+            <View style={styles.rule} />
+            <Muted style={{ fontSize: 12 }}>or</Muted>
+            <View style={styles.rule} />
+          </Row>
+          <Button title="Subscribe on the web" variant="secondary" onPress={buyOnWeb} busy={busy} />
+          <Muted style={{ fontSize: 12, textAlign: 'center' }}>
+            A web subscription works in the app and on fittrack.rosstoma.me.
+          </Muted>
+        </>
       )}
 
       <Button title="Restore purchases" variant="secondary" onPress={onRestore} busy={busy} />
 
       <Muted style={styles.legal}>
-        Payment is charged to your Apple ID. Subscriptions renew automatically unless cancelled at
-        least 24 hours before the period ends. Manage or cancel in Settings → Apple ID →
-        Subscriptions.
+        Payment for an in-app purchase is charged to your Apple ID. Subscriptions renew
+        automatically unless cancelled at least 24 hours before the period ends. Manage or cancel
+        in Settings → Apple ID → Subscriptions.
       </Muted>
 
       <Row style={{ gap: spacing.md, justifyContent: 'center' }}>
@@ -204,6 +260,8 @@ const styles = StyleSheet.create({
   },
   planTitle: { color: colors.text, fontSize: 17, fontWeight: '700' },
   planPrice: { color: colors.accent, fontSize: 20, fontWeight: '800' },
+  orRow: { gap: spacing.md, paddingHorizontal: spacing.lg },
+  rule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
   legal: { fontSize: 11, textAlign: 'center' },
   link: { color: colors.textMuted, fontSize: 12, textDecorationLine: 'underline' },
   notice: {

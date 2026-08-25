@@ -20,6 +20,8 @@ supabase link --project-ref kzzjdbdzpqqznslkhiky
 
 supabase secrets set ANTHROPIC_API_KEY=...
 supabase secrets set REVENUECAT_WEBHOOK_SECRET=...   # any long random string
+supabase secrets set STRIPE_SECRET_KEY=sk_live_...
+supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_... # shown when you create the endpoint
 ```
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are injected
@@ -41,9 +43,29 @@ supabase functions deploy delete-account
 # The webhook is called by RevenueCat, which cannot present a Supabase user JWT.
 # It authenticates with the shared secret instead — see the file header.
 supabase functions deploy revenuecat-webhook --no-verify-jwt
+
+# Same reasoning: Stripe authenticates with its own signature, not a JWT.
+supabase functions deploy stripe-webhook --no-verify-jwt
 ```
 
-## 4. Point RevenueCat at the webhook
+## 4. Stripe (web subscriptions)
+
+FitTrack is a multiplatform service, so guideline 3.1.3(b) allows honouring a
+subscription bought on the web — as long as the same thing stays buyable via
+IAP, which is why both paths exist.
+
+1. Stripe → Product catalogue → create a recurring price
+2. Payment links → create a link for it
+3. Put the link in `.env` as `EXPO_PUBLIC_STRIPE_PAYMENT_LINK`. The app appends
+   `?client_reference_id=<supabase user id>`, which is the **only** way the
+   webhook can tell whose account to upgrade — a checkout without it is logged
+   and ignored.
+4. Developers → Webhooks → add endpoint
+   `https://kzzjdbdzpqqznslkhiky.supabase.co/functions/v1/stripe-webhook`
+   Events: `checkout.session.completed`, `customer.subscription.updated`,
+   `customer.subscription.deleted`, `invoice.payment_failed`
+
+## 5. Point RevenueCat at the webhook
 
 RevenueCat → Project → Integrations → Webhooks:
 
@@ -57,7 +79,8 @@ RevenueCat → Project → Integrations → Webhooks:
 | `analyze-photo` | User JWT | Photo/text → nutrition. Enforces tier, daily quota, spend cap, and image validation. |
 | `coach-chat` | User JWT | Coach reply with today's totals as context. |
 | `delete-account` | User JWT | Erases the caller's account. Service role. |
-| `revenuecat-webhook` | Shared secret | The only writer of `entitlements`. |
+| `revenuecat-webhook` | Shared secret | Writes the `app_store` entitlement row. |
+| `stripe-webhook` | Stripe signature | Writes the `stripe` entitlement row. |
 
 ## Why the paywall is enforced here and not in the app
 

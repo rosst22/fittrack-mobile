@@ -92,22 +92,50 @@ export function deleteAccount() {
   return invoke<{ ok: true }>('delete-account', { confirm: 'DELETE' });
 }
 
-/** Current entitlement, read straight from the table (RLS-scoped to the user). */
-export async function getEntitlement(): Promise<{ tier: Tier; expiresAt: string | null }> {
+export type EntitlementSource = 'app_store' | 'stripe' | 'promotional';
+
+/**
+ * Current entitlement, from the `effective_entitlement` view.
+ *
+ * The view — not the raw table — because a user can hold entitlements from more
+ * than one source (Apple IAP and a web Stripe subscription). It resolves those
+ * to "pro if any source is currently active" and enforces expiry on read.
+ */
+export async function getEntitlement(): Promise<{
+  tier: Tier;
+  expiresAt: string | null;
+  source: EntitlementSource | null;
+}> {
   const { data, error } = await supabase
-    .from('entitlements')
-    .select('tier, status, expires_at')
+    .from('effective_entitlement')
+    .select('tier, expires_at, active_source')
     .maybeSingle();
 
-  if (error || !data) return { tier: 'free', expiresAt: null };
+  if (error || !data) return { tier: 'free', expiresAt: null, source: null };
 
-  const row = data as { tier: string; status: string; expires_at: string | null };
-  const active =
-    row.tier === 'pro' &&
-    (row.status === 'active' || row.status === 'billing_retry') &&
-    (!row.expires_at || new Date(row.expires_at).getTime() > Date.now());
+  const row = data as {
+    tier: string;
+    expires_at: string | null;
+    active_source: EntitlementSource | null;
+  };
 
-  return { tier: active ? 'pro' : 'free', expiresAt: row.expires_at };
+  return {
+    tier: row.tier === 'pro' ? 'pro' : 'free',
+    expiresAt: row.expires_at,
+    source: row.active_source,
+  };
+}
+
+/**
+ * Stripe Checkout URL for web purchase, carrying the Supabase user id as
+ * client_reference_id — that is how the webhook knows whose account to upgrade.
+ * Returns null when no payment link is configured in this build.
+ */
+export function stripeCheckoutUrl(userId: string): string | null {
+  const base = process.env.EXPO_PUBLIC_STRIPE_PAYMENT_LINK;
+  if (!base) return null;
+  const sep = base.includes('?') ? '&' : '?';
+  return `${base}${sep}client_reference_id=${encodeURIComponent(userId)}`;
 }
 
 /** Today's call counts per feature, for the "2 of 3 left" labels. */
