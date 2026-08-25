@@ -16,5 +16,13 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    // Edge Functions are Deno, not React Native: they import from jsr:/npm:
+    // specifiers and use the Deno global, none of which exist in this
+    // project's type environment. They are type-checked by `deno check`
+    // instead — see supabase/README.md.
+    "supabase"
   ]
 }

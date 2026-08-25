@@ -75,27 +75,49 @@ these six files must be made in both repos.
   in this app. They stay on Vercel.
 - `.env` is gitignored.
 
+## AI features and the paywall
+
+The AI features run on **Supabase Edge Functions** (`supabase/`), not on the web
+app — that keeps `~/meal-tracker` untouched and keeps every secret server-side.
+See `supabase/README.md` for deployment.
+
+| Feature | Free / day | Pro / day |
+|---|---|---|
+| Photo scan | 3 | 50 |
+| AI meal estimate (text) | 5 | 100 |
+| Coach messages | 10 | 200 |
+
+Everything else — logging, workouts, trends, goals, the weekly review — is free
+and unlimited.
+
+**Purchases go through Apple's In-App Purchase**, because guideline 3.1.1
+requires it for anything unlocking in-app features; Stripe would be a rejection.
+RevenueCat handles receipt validation and calls our webhook, which is the only
+thing that can write `entitlements`. The app never grants itself access, and
+every AI call re-checks tier and quota server-side.
+
+### Upload security
+
+Photos are re-encoded on the device before upload, which caps their size and —
+importantly for a health app — strips EXIF including GPS coordinates. Server
+side, `supabase/functions/_shared/image.ts` ignores the client's declared MIME
+type and sniffs the real one from magic bytes, caps dimensions to stop
+decompression bombs, rejects SVG outright, and builds storage paths from the
+user id plus a UUID so a crafted filename cannot escape the user's prefix.
+15 tests cover those cases: `deno test supabase/functions/_shared/`.
+
 ## Not ported yet
 
-These need server-side secrets the phone must not hold, so they still live on
-the web app:
-
-- **AI coach / photo meal analysis** — needs `ANTHROPIC_API_KEY`
-- **USDA food search** — needs `USDA_API_KEY`
-- **WHOOP sync and sleep** — needs the OAuth client secret
-
-Reaching them from mobile means teaching the existing Next.js API routes to
-accept an `Authorization: Bearer <supabase access token>` header alongside the
-cookie they use today. That is a small additive change to `~/meal-tracker`, not
-done here because that repo was to be left alone.
+- **USDA food search** — needs `USDA_API_KEY`, still web-only
+- **WHOOP sync and sleep** — needs the OAuth client secret, still web-only
 
 ## Roadmap
 
 1. ~~Auth + data layer~~ done
 2. ~~Core screens~~ done
-3. Bearer-token auth on the web API routes → AI coach, USDA search, WHOOP
+3. ~~AI coach, photo scanner, paywall, account deletion, legal docs~~ done
 4. HealthKit read/write (needs a dev build; not available in Expo Go)
 5. Push notifications
-6. App Store compliance — account deletion, privacy policy, demo account for
-   review, privacy nutrition labels
+6. App Store Connect setup — subscription product, screenshots, privacy
+   nutrition labels, demo account for review
 7. Submit

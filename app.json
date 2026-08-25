@@ -10,7 +10,10 @@
     "backgroundColor": "#0A0A0A",
     "ios": {
       "bundleIdentifier": "me.rosstoma.fittrack",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "me.rosstoma.fittrack",
@@ -37,7 +40,14 @@
         }
       ],
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FitTrack uses your photos so you can scan a meal or a nutrition label instead of typing it in.",
+          "cameraPermission": "FitTrack uses the camera so you can photograph a meal or a nutrition label and have it estimated for you."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

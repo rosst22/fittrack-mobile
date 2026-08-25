@@ -1,0 +1,12 @@
+{
+  "//": "Deno config for the Edge Functions. Supabase's runtime resolves npm: and jsr: specifiers on its own; this file exists so `deno check` works locally too. nodeModulesDir 'auto' stops Deno from looking for these packages in the React Native node_modules one level up.",
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@0.109.1",
+    "@supabase/supabase-js": "jsr:@supabase/supabase-js@2"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window", "dom"],
+    "strict": true
+  }
+}

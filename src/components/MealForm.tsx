@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 import { FoodPicker } from '@/components/FoodPicker';
+import { PhotoScanner } from '@/components/PhotoScanner';
 import { Button, Card, ErrorNote, Input, Muted, Row, SectionLabel, StatTile } from '@/components/ui';
 import { colors, radius, spacing } from '@/constants/theme';
 import { dateTimeLabel } from '@/lib/day';
@@ -94,6 +95,7 @@ export function MealForm({
     initialIngredients?.length ? initialIngredients.map(toDraft) : [emptyDraft()]
   );
   const [foodPickerOpen, setFoodPickerOpen] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -182,6 +184,8 @@ export function MealForm({
             <StatTile value={`${Math.round(totals.fat)}g`} label="Fat" />
           </Row>
         </Card>
+
+        <Button title="📷 Scan a photo with AI" onPress={() => setScannerOpen(true)} />
 
         <Button
           title="＋ Add from library or past meals"
@@ -278,6 +282,18 @@ export function MealForm({
           })
         }
         onPickMealName={(n) => setName((cur) => cur || n)}
+      />
+
+      <PhotoScanner
+        visible={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onResult={(mealName, ingredients) => {
+          setName((cur) => cur || mealName);
+          setRows((rs) => {
+            const base = rs.length === 1 && rs[0].name === '' ? [] : rs;
+            return [...base, ...ingredients.map(toDraft)];
+          });
+        }}
       />
     </KeyboardAvoidingView>
   );

@@ -8,6 +8,7 @@ import {
   Text,
   TextInput,
   View,
+  type StyleProp,
   type TextInputProps,
   type ViewStyle,
 } from 'react-native';
@@ -19,7 +20,7 @@ export function Card({
   style,
 }: {
   children: ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }) {
   return <View style={[styles.card, style]}>{children}</View>;
 }
@@ -57,7 +58,7 @@ export function StatTile({
   );
 }
 
-export function Row({ children, style }: { children: ReactNode; style?: ViewStyle }) {
+export function Row({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   return <View style={[styles.row, style]}>{children}</View>;
 }
 
@@ -128,7 +129,7 @@ export function Button({
   variant?: 'primary' | 'secondary' | 'danger';
   disabled?: boolean;
   busy?: boolean;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }) {
   const isPrimary = variant === 'primary';
   return (

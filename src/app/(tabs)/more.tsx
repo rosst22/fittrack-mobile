@@ -2,10 +2,11 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Card, ErrorNote, Muted, SectionLabel } from '@/components/ui';
+import { Card, ErrorNote, Muted, Row, SectionLabel } from '@/components/ui';
 import { colors, radius, spacing } from '@/constants/theme';
 import { APP_TZ, dayRange, todayStr } from '@/lib/day';
 import { useAuth } from '@/lib/auth';
+import { useEntitlement } from '@/lib/entitlement';
 
 type Item = {
   label: string;
@@ -15,14 +16,17 @@ type Item = {
 };
 
 const ITEMS: Item[] = [
+  { label: 'AI coach', sub: 'Ask about the data you logged', icon: 'chatbubbles-outline', href: '/coach' },
   { label: 'Weekly review', sub: 'Mon–Sun hit rate and totals', icon: 'calendar-outline', href: '/week' },
   { label: 'Daily', sub: 'Water, habits, supplements', icon: 'checkbox-outline', href: '/daily' },
   { label: 'Goals', sub: 'Calorie, macro and water targets', icon: 'flag-outline', href: '/goals' },
   { label: 'Profile', sub: 'Height, weight, age, BMR', icon: 'person-outline', href: '/profile' },
+  { label: 'Account', sub: 'Plan, legal, delete account', icon: 'settings-outline', href: '/account' },
 ];
 
 export default function MoreScreen() {
   const { session, signOut } = useAuth();
+  const { tier, limitFor, remainingFor } = useEntitlement();
 
   function confirmSignOut() {
     Alert.alert('Sign out', 'Sign out of FitTrack?', [
@@ -50,6 +54,31 @@ export default function MoreScreen() {
         ))}
       </Card>
 
+      {tier === 'free' ? (
+        <Pressable style={styles.proCard} onPress={() => router.push('/paywall')}>
+          <Ionicons name="sparkles" size={24} color={colors.accent} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.proTitle}>FitTrack Pro</Text>
+            <Muted style={{ fontSize: 13 }}>
+              {remainingFor('photo_meal')} of {limitFor('photo_meal')} photo scans left today
+            </Muted>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+        </Pressable>
+      ) : (
+        <Card>
+          <Row>
+            <Row style={{ justifyContent: 'flex-start', gap: spacing.sm, flex: 1 }}>
+              <Ionicons name="checkmark-circle" size={20} color={colors.accent} />
+              <Text style={styles.proTitle}>FitTrack Pro</Text>
+            </Row>
+            <Muted style={{ fontSize: 13 }}>
+              {remainingFor('photo_meal')}/{limitFor('photo_meal')} scans left
+            </Muted>
+          </Row>
+        </Card>
+      )}
+
       <Card>
         <SectionLabel>Account</SectionLabel>
         <Muted>{session?.user.email}</Muted>
@@ -61,8 +90,8 @@ export default function MoreScreen() {
       <TimezoneCheck />
 
       <Muted style={styles.footer}>
-        Sleep, WHOOP and the AI coach still live on the web app at
-        fittrack.rosstoma.me — they need server-side keys the phone must not hold.
+        WHOOP sync and sleep still live on the web app at fittrack.rosstoma.me — they need an OAuth
+        secret the phone must not hold.
       </Muted>
     </ScrollView>
   );
@@ -106,5 +135,16 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   signOutText: { color: colors.danger, fontSize: 15, fontWeight: '700' },
+  proCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.card,
+    borderColor: colors.accent,
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+  },
+  proTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
   footer: { fontSize: 12, textAlign: 'center', paddingHorizontal: spacing.md },
 });

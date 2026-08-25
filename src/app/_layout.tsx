@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { colors } from '@/constants/theme';
 import { AuthProvider, useAuth } from '@/lib/auth';
+import { EntitlementProvider } from '@/lib/entitlement';
 
 // Redirects between the signed-in and signed-out halves of the app whenever the
 // session changes. Doing this in an effect (rather than conditionally rendering
@@ -50,6 +51,13 @@ function AuthGate() {
       <Stack.Screen name="profile" options={{ title: 'Profile' }} />
       <Stack.Screen name="daily" options={{ title: 'Daily' }} />
       <Stack.Screen name="week" options={{ title: 'Weekly review' }} />
+      <Stack.Screen name="account" options={{ title: 'Account' }} />
+      <Stack.Screen name="coach" options={{ title: 'AI coach' }} />
+      <Stack.Screen
+        name="paywall"
+        options={{ title: 'FitTrack Pro', presentation: 'modal' }}
+      />
+      <Stack.Screen name="legal" options={{ headerShown: false }} />
     </Stack>
   );
 }
@@ -59,8 +67,10 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <AuthProvider>
-          <StatusBar style="light" />
-          <AuthGate />
+          <EntitlementProvider>
+            <StatusBar style="light" />
+            <AuthGate />
+          </EntitlementProvider>
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
