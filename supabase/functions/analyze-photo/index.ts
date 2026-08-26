@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
         : 'Analyze this photo and estimate the nutrition.',
     });
 
-    const model = modelFor(feature);
+    const model = modelFor(feature, tier);
     const message = await anthropic.messages.create({
       model,
       max_tokens: 2000,

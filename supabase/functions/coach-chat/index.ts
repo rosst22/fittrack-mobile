@@ -12,7 +12,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import {
   checkQuota,
   CORS,
-  MODELS,
+  modelFor,
   getTier,
   json,
   recordUsage,
@@ -75,8 +75,9 @@ Deno.serve(async (req) => {
     const context = await buildContext(supabase);
     const anthropic = new Anthropic({ apiKey });
 
+    const model = modelFor('coach_chat', tier);
     const message = await anthropic.messages.create({
-      model: MODELS.coach_chat,
+      model,
       max_tokens: 1000,
       system: `${SYSTEM_PROMPT}\n\nToday's logged data:\n${context}`,
       messages,
@@ -86,7 +87,7 @@ Deno.serve(async (req) => {
       supabase,
       user.id,
       'coach_chat',
-      MODELS.coach_chat,
+      model,
       message.usage.input_tokens,
       message.usage.output_tokens
     );

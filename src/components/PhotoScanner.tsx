@@ -34,7 +34,7 @@ export function PhotoScanner({
   onClose: () => void;
   onResult: (mealName: string, ingredients: NewIngredient[]) => void;
 }) {
-  const { tier, remainingFor, refresh } = useEntitlement();
+  const { tier, limitFor, remainingFor, refresh } = useEntitlement();
   const [preview, setPreview] = useState<string | null>(null);
   const [base64, setBase64] = useState<string | null>(null);
   const [description, setDescription] = useState('');
@@ -158,7 +158,7 @@ export function PhotoScanner({
         <ScrollView contentContainerStyle={styles.content}>
           <Row style={styles.quota}>
             <Muted style={{ fontSize: 13 }}>
-              {remaining} of {tier === 'pro' ? 50 : 3} scans left today
+              {remaining} of {limitFor('photo_meal')} scans left today
             </Muted>
             {tier === 'free' && (
               <Pressable onPress={() => router.push('/paywall')}>

@@ -18,7 +18,7 @@ type Item = {
 };
 
 const ITEMS: Item[] = [
-  { label: 'AI coach', sub: 'Ask about the data you logged', icon: 'chatbubbles-outline', href: '/coach', pro: true },
+  { label: 'AI coach', sub: 'Ask about the data you logged', icon: 'chatbubbles-outline', href: '/coach' },
   { label: 'Weekly review', sub: 'Mon–Sun hit rate and totals', icon: 'calendar-outline', href: '/week' },
   { label: 'Daily', sub: 'Water, habits, supplements', icon: 'checkbox-outline', href: '/daily' },
   { label: 'Goals', sub: 'Calorie, macro and water targets', icon: 'flag-outline', href: '/goals' },

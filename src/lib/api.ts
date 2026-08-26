@@ -152,5 +152,5 @@ export async function getUsageToday(): Promise<Record<string, number>> {
  * Display only — the server re-checks every call and its 429 is authoritative.
  * If these drift from the server's, the UI lies but nothing becomes exploitable.
  */
-export const FREE_LIMITS = { photo_meal: 1, text_meal: 2, coach_chat: 0 } as const;
+export const FREE_LIMITS = { photo_meal: 3, text_meal: 3, coach_chat: 1 } as const;
 export const PRO_LIMITS = { photo_meal: 15, text_meal: 30, coach_chat: 15 } as const;

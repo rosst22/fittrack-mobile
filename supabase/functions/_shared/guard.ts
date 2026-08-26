@@ -19,12 +19,13 @@ export type Tier = 'free' | 'pro';
  * does. Free gets a cap too: free users generate no revenue at all, so an
  * abusive one is pure loss.
  *
- * Free has NO coach access (limit 0). checkQuota treats 0 as "always blocked",
- * and the message it returns points at the paywall rather than reporting a
- * used-up allowance.
+ * Free gets a taste of every feature rather than a locked door — one coach
+ * message a day is enough to see the value without being a meaningful cost.
+ * checkQuota still handles a 0 limit as a locked feature, so a tier can be
+ * closed off later by setting its allowance to zero.
  */
 export const LIMITS = {
-  free: { photo_meal: 1, text_meal: 2, coach_chat: 0, spendUsd: 0.03 },
+  free: { photo_meal: 3, text_meal: 3, coach_chat: 1, spendUsd: 0.04 },
   pro: { photo_meal: 15, text_meal: 30, coach_chat: 15, spendUsd: 0.45 },
 } as const;
 
@@ -123,7 +124,11 @@ export async function checkQuota(
   const used = rows.filter((r) => r.feature === feature).length;
   const spent = rows.reduce((n, r) => n + Number(r.cost_usd ?? 0), 0);
   const limits = LIMITS[tier];
-  const limit = limits[feature];
+  // Widened from the literal union LIMITS produces under `as const`: the
+  // zero-limit branch below is a supported configuration (it closes a feature
+  // off for a tier), and the narrow type would make TS prove it dead whenever
+  // no tier currently sits at 0.
+  const limit: number = limits[feature];
 
   if (used >= limit) {
     // A zero allowance is a locked feature, not an exhausted one — saying
@@ -174,28 +179,36 @@ function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+const HAIKU = 'claude-haiku-4-5';
+const SONNET = 'claude-sonnet-4-6';
+
 /**
- * Model per feature.
+ * Model per feature and tier.
  *
  * Meal estimation is structured extraction from an image or a short phrase —
- * squarely a Haiku task, and Haiku is 3x cheaper per call, which is what makes
- * a generous photo allowance affordable. The coach reasons over the day's
- * numbers and gives advice, so it stays on Sonnet.
+ * squarely a Haiku task on either tier, and Haiku is 3x cheaper, which is what
+ * makes a generous photo allowance affordable at all.
+ *
+ * The coach is the one place the model choice is visible in the output, so it
+ * splits by tier: free runs on Haiku (a free user generates no revenue, and one
+ * message a day on Sonnet costs more than the rest of the free tier combined),
+ * Pro runs on Sonnet, where reasoning over the day's numbers is what people are
+ * paying for.
  */
-export const MODELS = {
-  photo_meal: 'claude-haiku-4-5',
-  text_meal: 'claude-haiku-4-5',
-  coach_chat: 'claude-sonnet-4-6',
-} as const;
+const MODELS: Record<Feature, Record<Tier, string>> = {
+  photo_meal: { free: HAIKU, pro: HAIKU },
+  text_meal: { free: HAIKU, pro: HAIKU },
+  coach_chat: { free: HAIKU, pro: SONNET },
+};
 
 /** USD per million tokens. Keep in step with the models above. */
 const PRICING: Record<string, { input: number; output: number }> = {
-  'claude-haiku-4-5': { input: 1.0, output: 5.0 },
-  'claude-sonnet-4-6': { input: 3.0, output: 15.0 },
+  [HAIKU]: { input: 1.0, output: 5.0 },
+  [SONNET]: { input: 3.0, output: 15.0 },
 };
 
-export function modelFor(feature: Feature): string {
-  return MODELS[feature];
+export function modelFor(feature: Feature, tier: Tier): string {
+  return MODELS[feature][tier];
 }
 
 export function costUsd(model: string, inputTokens: number, outputTokens: number) {
