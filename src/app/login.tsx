@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -85,6 +86,10 @@ export default function LoginScreen() {
               <Text style={styles.buttonText}>Sign in</Text>
             )}
           </Pressable>
+
+          <Pressable onPress={() => router.push('/auth/forgot')} hitSlop={8}>
+            <Text style={styles.forgot}>Forgot password?</Text>
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -116,4 +121,11 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.5 },
   buttonText: { color: '#000', fontSize: 16, fontWeight: '700' },
+  forgot: {
+    color: colors.textMuted,
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: spacing.sm,
+    textDecorationLine: 'underline',
+  },
 });

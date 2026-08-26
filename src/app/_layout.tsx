@@ -18,9 +18,11 @@ function AuthGate() {
 
   useEffect(() => {
     if (loading) return;
-    const onLoginScreen = segments[0] === 'login';
-    if (!session && !onLoginScreen) router.replace('/login');
-    else if (session && onLoginScreen) router.replace('/');
+    // /auth/* is reachable signed-out (password recovery), and /auth/reset
+    // must also stay reachable while the temporary recovery session is active.
+    const onAuthScreen = segments[0] === 'login' || segments[0] === 'auth';
+    if (!session && !onAuthScreen) router.replace('/login');
+    else if (session && segments[0] === 'login') router.replace('/');
   }, [session, loading, segments]);
 
   if (loading) {
@@ -43,6 +45,8 @@ function AuthGate() {
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="auth/forgot" options={{ title: 'Reset password' }} />
+      <Stack.Screen name="auth/reset" options={{ title: 'New password' }} />
       <Stack.Screen name="meal/new" options={{ title: 'Log meal', presentation: 'modal' }} />
       <Stack.Screen name="meal/[id]" options={{ title: 'Edit meal' }} />
       <Stack.Screen name="workout/new" options={{ title: 'Log workout', presentation: 'modal' }} />
