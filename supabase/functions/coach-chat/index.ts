@@ -11,8 +11,8 @@ import Anthropic from '@anthropic-ai/sdk';
 
 import {
   checkQuota,
-  COACH_MODEL,
   CORS,
+  MODELS,
   getTier,
   json,
   recordUsage,
@@ -30,7 +30,10 @@ Rules:
 - Never invent data you were not given. If something was not logged, say so.
 - You are not a doctor. For anything medical — symptoms, medication, injury, disordered eating — say plainly that it needs a professional, and do not offer a diagnosis or a treatment plan.`;
 
-const MAX_MESSAGES = 20;
+// Capped at 8: the whole history is re-sent on every turn, so a long thread
+// makes one "message" cost many times a short one. 20 turns of 4000 chars was
+// ~20k input tokens per call — an order of magnitude above the typical case.
+const MAX_MESSAGES = 8;
 const MAX_CHARS_PER_MESSAGE = 4000;
 
 Deno.serve(async (req) => {
@@ -73,7 +76,7 @@ Deno.serve(async (req) => {
     const anthropic = new Anthropic({ apiKey });
 
     const message = await anthropic.messages.create({
-      model: COACH_MODEL,
+      model: MODELS.coach_chat,
       max_tokens: 1000,
       system: `${SYSTEM_PROMPT}\n\nToday's logged data:\n${context}`,
       messages,
@@ -83,6 +86,7 @@ Deno.serve(async (req) => {
       supabase,
       user.id,
       'coach_chat',
+      MODELS.coach_chat,
       message.usage.input_tokens,
       message.usage.output_tokens
     );

@@ -12,11 +12,11 @@ import Anthropic from '@anthropic-ai/sdk';
 
 import {
   checkQuota,
-  COACH_MODEL,
   CORS,
   getTier,
   json,
   recordUsage,
+  modelFor,
   requireUser,
   userClient,
 } from '../_shared/guard.ts';
@@ -148,8 +148,9 @@ Deno.serve(async (req) => {
         : 'Analyze this photo and estimate the nutrition.',
     });
 
+    const model = modelFor(feature);
     const message = await anthropic.messages.create({
-      model: COACH_MODEL,
+      model,
       max_tokens: 2000,
       system: SYSTEM_PROMPT,
       tools: [
@@ -167,6 +168,7 @@ Deno.serve(async (req) => {
       supabase,
       user.id,
       feature,
+      model,
       message.usage.input_tokens,
       message.usage.output_tokens
     );

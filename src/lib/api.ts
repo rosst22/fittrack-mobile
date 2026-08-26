@@ -147,6 +147,10 @@ export async function getUsageToday(): Promise<Record<string, number>> {
   );
 }
 
-/** Free-tier allowances, mirrored from supabase/functions/_shared/guard.ts. */
-export const FREE_LIMITS = { photo_meal: 3, text_meal: 5, coach_chat: 10 } as const;
-export const PRO_LIMITS = { photo_meal: 50, text_meal: 100, coach_chat: 200 } as const;
+/**
+ * Allowances, mirrored from supabase/functions/_shared/guard.ts.
+ * Display only — the server re-checks every call and its 429 is authoritative.
+ * If these drift from the server's, the UI lies but nothing becomes exploitable.
+ */
+export const FREE_LIMITS = { photo_meal: 1, text_meal: 2, coach_chat: 0 } as const;
+export const PRO_LIMITS = { photo_meal: 15, text_meal: 30, coach_chat: 15 } as const;

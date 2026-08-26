@@ -9,10 +9,23 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 export type Tier = 'free' | 'pro';
 
-/** Per-day allowances, by tier. */
+/**
+ * Per-day allowances, by tier.
+ *
+ * These are sized against what a subscription actually nets after Apple's cut:
+ * $5/month at the Small Business Program's 15% is $4.25, or about 14c a day.
+ * The spend caps are the real protection — a call allowance alone doesn't bound
+ * cost, because one long coach conversation costs many times what a photo scan
+ * does. Free gets a cap too: free users generate no revenue at all, so an
+ * abusive one is pure loss.
+ *
+ * Free has NO coach access (limit 0). checkQuota treats 0 as "always blocked",
+ * and the message it returns points at the paywall rather than reporting a
+ * used-up allowance.
+ */
 export const LIMITS = {
-  free: { photo_meal: 3, text_meal: 5, coach_chat: 10, spendUsd: 0.25 },
-  pro: { photo_meal: 50, text_meal: 100, coach_chat: 200, spendUsd: 3.0 },
+  free: { photo_meal: 1, text_meal: 2, coach_chat: 0, spendUsd: 0.03 },
+  pro: { photo_meal: 15, text_meal: 30, coach_chat: 15, spendUsd: 0.45 },
 } as const;
 
 export type Feature = 'photo_meal' | 'text_meal' | 'coach_chat';
@@ -113,6 +126,17 @@ export async function checkQuota(
   const limit = limits[feature];
 
   if (used >= limit) {
+    // A zero allowance is a locked feature, not an exhausted one — saying
+    // "you've used all 0" reads as a bug.
+    if (limit === 0) {
+      return {
+        ok: false,
+        used,
+        limit,
+        tier,
+        reason: `${capitalize(labelFor(feature))} are a FitTrack Pro feature.`,
+      };
+    }
     return {
       ok: false,
       used,
@@ -120,7 +144,7 @@ export async function checkQuota(
       tier,
       reason:
         tier === 'free'
-          ? `You've used all ${limit} free ${labelFor(feature)} today. Upgrade to Pro for ${LIMITS.pro[feature]} a day, or try again after midnight UTC.`
+          ? `That's your ${limit === 1 ? 'free scan' : `${limit} free ${labelFor(feature)}`} for today. Pro gets ${LIMITS.pro[feature]} a day, or try again after midnight UTC.`
           : `Daily limit of ${limit} ${labelFor(feature)} reached. Resets at midnight UTC.`,
     };
   }
@@ -146,15 +170,40 @@ function labelFor(feature: Feature) {
   return 'coach messages';
 }
 
-// Sonnet 4.6 pricing (USD per million tokens), mirroring meal-tracker/src/lib/ai.ts.
-export const COACH_MODEL = 'claude-sonnet-4-6';
-const INPUT_PRICE_PER_MTOK = 3.0;
-const OUTPUT_PRICE_PER_MTOK = 15.0;
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 
-export function costUsd(inputTokens: number, outputTokens: number) {
+/**
+ * Model per feature.
+ *
+ * Meal estimation is structured extraction from an image or a short phrase —
+ * squarely a Haiku task, and Haiku is 3x cheaper per call, which is what makes
+ * a generous photo allowance affordable. The coach reasons over the day's
+ * numbers and gives advice, so it stays on Sonnet.
+ */
+export const MODELS = {
+  photo_meal: 'claude-haiku-4-5',
+  text_meal: 'claude-haiku-4-5',
+  coach_chat: 'claude-sonnet-4-6',
+} as const;
+
+/** USD per million tokens. Keep in step with the models above. */
+const PRICING: Record<string, { input: number; output: number }> = {
+  'claude-haiku-4-5': { input: 1.0, output: 5.0 },
+  'claude-sonnet-4-6': { input: 3.0, output: 15.0 },
+};
+
+export function modelFor(feature: Feature): string {
+  return MODELS[feature];
+}
+
+export function costUsd(model: string, inputTokens: number, outputTokens: number) {
+  // An unknown model must not price as free — that would silently disable the
+  // spend cap. Fall back to the most expensive model we use.
+  const price = PRICING[model] ?? { input: 3.0, output: 15.0 };
   return (
-    (inputTokens * INPUT_PRICE_PER_MTOK) / 1_000_000 +
-    (outputTokens * OUTPUT_PRICE_PER_MTOK) / 1_000_000
+    (inputTokens * price.input) / 1_000_000 + (outputTokens * price.output) / 1_000_000
   );
 }
 
@@ -162,15 +211,16 @@ export async function recordUsage(
   supabase: SupabaseClient,
   userId: string,
   feature: Feature,
+  model: string,
   inputTokens: number,
   outputTokens: number
 ) {
   await supabase.from('ai_usage').insert({
     user_id: userId,
     feature,
-    model: COACH_MODEL,
+    model,
     input_tokens: inputTokens,
     output_tokens: outputTokens,
-    cost_usd: costUsd(inputTokens, outputTokens),
+    cost_usd: costUsd(model, inputTokens, outputTokens),
   });
 }

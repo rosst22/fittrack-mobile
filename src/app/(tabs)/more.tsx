@@ -13,10 +13,12 @@ type Item = {
   sub: string;
   icon: keyof typeof Ionicons.glyphMap;
   href: string;
+  /** Pro-only: free users are sent to the paywall instead of the screen. */
+  pro?: boolean;
 };
 
 const ITEMS: Item[] = [
-  { label: 'AI coach', sub: 'Ask about the data you logged', icon: 'chatbubbles-outline', href: '/coach' },
+  { label: 'AI coach', sub: 'Ask about the data you logged', icon: 'chatbubbles-outline', href: '/coach', pro: true },
   { label: 'Weekly review', sub: 'Mon–Sun hit rate and totals', icon: 'calendar-outline', href: '/week' },
   { label: 'Daily', sub: 'Water, habits, supplements', icon: 'checkbox-outline', href: '/daily' },
   { label: 'Goals', sub: 'Calorie, macro and water targets', icon: 'flag-outline', href: '/goals' },
@@ -42,11 +44,18 @@ export default function MoreScreen() {
           <Pressable
             key={item.href}
             style={[styles.row, i > 0 && styles.rowDivider]}
-            onPress={() => router.push(item.href as never)}
+            onPress={() =>
+              item.pro && tier !== 'pro'
+                ? router.push('/paywall')
+                : router.push(item.href as never)
+            }
           >
             <Ionicons name={item.icon} size={22} color={colors.accent} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.label}>{item.label}</Text>
+              <Row style={{ justifyContent: 'flex-start', gap: spacing.sm }}>
+                <Text style={styles.label}>{item.label}</Text>
+                {item.pro && tier !== 'pro' && <Text style={styles.proBadge}>PRO</Text>}
+              </Row>
               <Muted style={{ fontSize: 13 }}>{item.sub}</Muted>
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
@@ -146,5 +155,16 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   proTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  proBadge: {
+    color: colors.accent,
+    fontSize: 10,
+    fontWeight: '800',
+    borderWidth: 1,
+    borderColor: colors.accent,
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    overflow: 'hidden',
+  },
   footer: { fontSize: 12, textAlign: 'center', paddingHorizontal: spacing.md },
 });
