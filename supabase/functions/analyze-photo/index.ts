@@ -8,7 +8,7 @@
 // Every cheap rejection happens before anything expensive, and nothing reaches
 // Anthropic until the caller has been proven to be a signed-in user with
 // allowance remaining.
-import Anthropic from '@anthropic-ai/sdk';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.109.1';
 
 import {
   checkQuota,

@@ -5,7 +5,7 @@
 // remaining-scans counter, but those are cosmetic — a modified client can lie
 // about both, so nothing here trusts anything the client says about itself
 // except its access token, which is signed.
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2';
 
 export type Tier = 'free' | 'pro';
 

@@ -13,7 +13,7 @@
 //   URL: https://<ref>.supabase.co/functions/v1/stripe-webhook
 //   Events: checkout.session.completed, customer.subscription.updated,
 //           customer.subscription.deleted, invoice.payment_failed
-import Stripe from 'stripe';
+import Stripe from 'npm:stripe@19.2.0';
 
 import { json, serviceClient } from '../_shared/guard.ts';
 

@@ -7,7 +7,7 @@
 // doing" without the user restating it. That context is fetched server-side
 // through the caller's own JWT, so RLS decides what it can see — the client
 // cannot inject someone else's data into the prompt by sending it along.
-import Anthropic from '@anthropic-ai/sdk';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.109.1';
 
 import {
   checkQuota,
