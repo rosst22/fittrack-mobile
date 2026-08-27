@@ -124,7 +124,7 @@ export default function CoachScreen() {
         )}
 
         {error && <ErrorNote message={error} />}
-        {needsUpgrade && <Button title="See FitTrack Pro" onPress={() => router.push('/paywall')} />}
+        {needsUpgrade && <Button title="See FitTrackAI Pro" onPress={() => router.push('/paywall')} />}
       </ScrollView>
 
       <View style={styles.composer}>

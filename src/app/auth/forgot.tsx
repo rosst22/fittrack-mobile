@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase';
 /**
  * Step 1 of password recovery: ask Supabase to email a recovery link.
  *
- * `redirectTo` uses the app's own URL scheme so the link reopens FitTrack
+ * `redirectTo` uses the app's own URL scheme so the link reopens FitTrackAI
  * rather than a browser. That scheme must be listed in Supabase → Authentication
  * → URL Configuration → Redirect URLs, or Supabase silently falls back to the
  * project's Site URL and the link lands on the web app instead. That exact

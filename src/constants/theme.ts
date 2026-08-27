@@ -1,4 +1,4 @@
-// FitTrack's visual identity, carried over from the web app: dark surfaces with
+// FitTrackAI's visual identity, carried over from the web app: dark surfaces with
 // a single green accent.
 export const colors = {
   accent: '#22C55E',

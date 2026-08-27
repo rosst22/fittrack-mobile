@@ -45,7 +45,7 @@ export default function LoginScreen() {
         style={styles.fill}
       >
         <View style={styles.body}>
-          <Text style={styles.title}>FitTrack</Text>
+          <Text style={styles.title}>FitTrackAI</Text>
           <Text style={styles.subtitle}>Sign in to your account</Text>
 
           <TextInput

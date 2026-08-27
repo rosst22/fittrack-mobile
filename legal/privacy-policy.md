@@ -1,8 +1,8 @@
-# FitTrack Privacy Policy
+# FitTrackAI Privacy Policy
 
 **Last updated: 25 August 2026**
 
-FitTrack ("the app") is operated by Ross Toma ("we", "us"). This policy explains
+FitTrackAI ("the app") is operated by Ross Toma ("we", "us"). This policy explains
 what the app collects, why, and what you can do about it.
 
 Contact: **support@rosstoma.me**
@@ -69,7 +69,7 @@ us beyond the meal record you choose to save.
 
 ## 3. Health data
 
-FitTrack records information about your diet and exercise. We treat this as
+FitTrackAI records information about your diet and exercise. We treat this as
 sensitive and handle it accordingly:
 
 - It is stored in a database where **row-level security** restricts every row to
@@ -79,7 +79,7 @@ sensitive and handle it accordingly:
   do **not** use Apple Health data for advertising, marketing, or data mining,
   we do **not** disclose it to third parties, and we do **not** store it in
   iCloud.
-- **FitTrack is not a medical device.** Nothing in it is medical advice. AI
+- **FitTrackAI is not a medical device.** Nothing in it is medical advice. AI
   estimates are approximate and can be wrong. Do not use it to diagnose or treat
   anything, and speak to a qualified professional about any medical concern.
 
@@ -95,7 +95,7 @@ We use these processors, and no others:
 | **Anthropic** | AI photo, meal and coach responses | United States |
 | **RevenueCat** | Subscription and receipt validation | United States |
 | **Apple** | Payment processing for subscriptions | United States |
-| **Vercel** | Hosting for the FitTrack web app | United States |
+| **Vercel** | Hosting for the FitTrackAI web app | United States |
 
 We may disclose data if legally required to do so — for example under a valid
 court order.
@@ -147,7 +147,7 @@ the CCPA.
 
 ## 8. Children
 
-FitTrack is not directed at children under 13, and we do not knowingly collect
+FitTrackAI is not directed at children under 13, and we do not knowingly collect
 data from them. If you believe a child has created an account, email us and we
 will delete it.
 

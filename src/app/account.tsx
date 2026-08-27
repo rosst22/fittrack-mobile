@@ -61,7 +61,7 @@ export default function AccountScreen() {
         <Row>
           <Muted>Plan</Muted>
           <Text style={[styles.plan, tier === 'pro' && { color: colors.accent }]}>
-            {tier === 'pro' ? 'FitTrack Pro' : 'Free'}
+            {tier === 'pro' ? 'FitTrackAI Pro' : 'Free'}
           </Text>
         </Row>
         {tier === 'pro' ? (
@@ -71,7 +71,7 @@ export default function AccountScreen() {
             onPress={() => Linking.openURL('https://apps.apple.com/account/subscriptions')}
           />
         ) : (
-          <Button title="See FitTrack Pro" onPress={() => router.push('/paywall')} />
+          <Button title="See FitTrackAI Pro" onPress={() => router.push('/paywall')} />
         )}
       </Card>
 

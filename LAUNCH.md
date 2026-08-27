@@ -1,6 +1,6 @@
 # Launch checklist
 
-What is done, and what is left before FitTrack can go on the App Store. Ordered
+What is done, and what is left before FitTrackAI can go on the App Store. Ordered
 by what blocks what.
 
 ---
@@ -103,7 +103,7 @@ runtime do not matter.
 
 Reviewers reject what they cannot understand. Say plainly:
 
-> FitTrack is a personal meal and workout tracker. Tracking is free. The
+> FitTrackAI is a personal meal and workout tracker. Tracking is free. The
 > subscription raises daily limits on AI features (photo nutrition scanning and
 > a coach), which cost per call to run. Demo account: <email> / <password>.
 > Account deletion is at More → Account → Delete account.
