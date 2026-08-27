@@ -22,6 +22,8 @@ type AuthValue = {
   /** True until the persisted session has been read from storage. */
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  /** Creates the account. Email confirmation is off, so this signs in too. */
+  signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -63,6 +65,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Let the caller show it; onAuthStateChange handles the success path.
         if (error) throw error;
       },
+      async signUp(email, password) {
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+        });
+        if (error) throw error;
+        // The project has email confirmation disabled, so signUp normally
+        // returns a live session and onAuthStateChange takes over. If
+        // confirmation is ever turned on, there is no session and the caller
+        // needs to say "check your email" rather than silently doing nothing.
+        if (!data.session) {
+          throw new Error(
+            'Account created. Check your email to confirm it, then sign in.'
+          );
+        }
+      },
+
       async signOut() {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;

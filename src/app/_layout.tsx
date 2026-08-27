@@ -45,6 +45,7 @@ function AuthGate() {
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="auth/signup" options={{ title: 'Create account' }} />
       <Stack.Screen name="auth/forgot" options={{ title: 'Reset password' }} />
       <Stack.Screen name="auth/reset" options={{ title: 'New password' }} />
       <Stack.Screen name="meal/new" options={{ title: 'Log meal', presentation: 'modal' }} />

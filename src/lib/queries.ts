@@ -8,7 +8,7 @@
 // every table by auth.uid() server-side, so a bare select returns only the
 // signed-in user's rows. Adding .eq('user_id', ...) here would be redundant,
 // and would give the false impression that the client is what enforces it.
-import { dayRange, shiftDate, todayStr } from '@/lib/day';
+import { dayKey, dayRange, shiftDate, todayStr } from '@/lib/day';
 import { addMicros, emptyMicroTotals } from '@/lib/micros';
 import { supabase } from '@/lib/supabase';
 import type {
@@ -607,4 +607,91 @@ export function lastNDays(days: number, endDateStr = todayStr()): string[] {
   const out: string[] = [];
   for (let i = days - 1; i >= 0; i--) out.push(shiftDate(endDateStr, -i));
   return out;
+}
+
+// ---------------------------------------------------------------- sleep (WHOOP)
+
+/**
+ * Nightly sleep, read from the JSON blob WHOOP sync writes on the web app.
+ *
+ * There is no per-night sleep table — this is a snapshot overwritten on every
+ * sync with the last 14 nights, so history reaches back at most 14 nights and
+ * only as far as the last sync. If syncing lapses, that stretch is gone
+ * permanently. Sync itself stays on the web app; it needs an OAuth secret the
+ * phone must not hold.
+ *
+ * A night is filed under the day it ENDS — Sunday night into Monday morning is
+ * Monday's sleep, which is how WHOOP itself presents it. Bucketing by `start`
+ * shifts every night back a day.
+ */
+export type SleepNight = { date: string; hours: number; performance: number | null };
+
+export async function getSleepNights(): Promise<SleepNight[]> {
+  const { data, error } = await supabase
+    .from('whoop_connections')
+    .select('last_sleep_json')
+    .maybeSingle();
+
+  if (error || !data) return [];
+
+  type Record = {
+    end: string;
+    nap: boolean;
+    score_state: string;
+    score?: {
+      sleep_performance_percentage?: number;
+      stage_summary?: {
+        total_light_sleep_time_milli?: number;
+        total_slow_wave_sleep_time_milli?: number;
+        total_rem_sleep_time_milli?: number;
+      };
+    };
+  };
+
+  const records = ((data as { last_sleep_json: Record[] | null }).last_sleep_json ?? []).filter(
+    (r) => r.score_state === 'SCORED' && !r.nap
+  );
+
+  const byDay = new Map<string, { ms: number; performance: number | null }>();
+  for (const r of records) {
+    const stages = r.score?.stage_summary;
+    // Time asleep, not time in bed — light + deep + REM, excluding awake.
+    const asleep =
+      (stages?.total_light_sleep_time_milli ?? 0) +
+      (stages?.total_slow_wave_sleep_time_milli ?? 0) +
+      (stages?.total_rem_sleep_time_milli ?? 0);
+    const key = dayKey(r.end);
+    const prev = byDay.get(key);
+    byDay.set(key, {
+      ms: (prev?.ms ?? 0) + asleep,
+      performance: r.score?.sleep_performance_percentage ?? prev?.performance ?? null,
+    });
+  }
+
+  return [...byDay.entries()]
+    .map(([date, v]) => ({ date, hours: v.ms / 3_600_000, performance: v.performance }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+// ---------------------------------------------------------------- habit history
+
+/** Habit completions per day over a range, for the trends chart. */
+export async function getHabitCompletions(
+  fromDateStr: string,
+  toDateStr: string
+): Promise<{ byDay: Record<string, number>; activeHabits: number }> {
+  const { start } = dayRange(fromDateStr);
+  const { end } = dayRange(toDateStr);
+
+  const [habits, logs] = await Promise.all([
+    supabase.from('habits').select('id').eq('active', true),
+    supabase.from('habit_logs').select('done_at').gte('done_at', start).lte('done_at', end),
+  ]);
+
+  const byDay: Record<string, number> = {};
+  for (const row of (logs.data ?? []) as { done_at: string }[]) {
+    const key = dayKey(row.done_at);
+    byDay[key] = (byDay[key] ?? 0) + 1;
+  }
+  return { byDay, activeHabits: (habits.data ?? []).length };
 }

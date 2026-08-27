@@ -90,6 +90,12 @@ export default function LoginScreen() {
           <Pressable onPress={() => router.push('/auth/forgot')} hitSlop={8}>
             <Text style={styles.forgot}>Forgot password?</Text>
           </Pressable>
+
+          <Pressable onPress={() => router.push('/auth/signup')} hitSlop={8}>
+            <Text style={styles.signup}>
+              New here? <Text style={styles.signupAccent}>Create an account</Text>
+            </Text>
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -121,6 +127,8 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.5 },
   buttonText: { color: '#000', fontSize: 16, fontWeight: '700' },
+  signup: { color: colors.textMuted, fontSize: 15, textAlign: 'center', paddingVertical: spacing.xs },
+  signupAccent: { color: colors.accent, fontWeight: '700' },
   forgot: {
     color: colors.textMuted,
     fontSize: 14,
