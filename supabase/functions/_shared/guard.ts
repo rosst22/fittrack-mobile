@@ -74,22 +74,27 @@ export async function requireUser(supabase: SupabaseClient) {
 /**
  * The caller's current tier.
  *
- * Treats a missing row as free, and — importantly — treats an `active` row
- * whose expires_at is in the past as free too. RevenueCat webhooks can be
- * delayed or dropped; expiry must be enforced on read, not only on write.
+ * Reads the `effective_entitlement` view, NOT the `entitlements` table.
+ *
+ * This used to query `entitlements` with `.maybeSingle()`, which was correct
+ * only while user_id was the primary key. The multi-source migration re-keyed
+ * it to (user_id, source), so a user with both a lapsed App Store subscription
+ * and an active Stripe one has two rows — and `.maybeSingle()` errors on
+ * multiple rows, which silently downgraded a paying customer to free.
+ *
+ * The view collapses sources with "pro if ANY is currently active" and enforces
+ * expiry on read, so a delayed or dropped webhook cannot leave access switched
+ * on past the period it was paid for. It is also what the clients read, so the
+ * tier shown in the UI and the tier enforced here can no longer disagree.
  */
 export async function getTier(supabase: SupabaseClient, userId: string): Promise<Tier> {
   const { data } = await supabase
-    .from('entitlements')
-    .select('tier, status, expires_at')
+    .from('effective_entitlement')
+    .select('tier')
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (!data) return 'free';
-  if (data.tier !== 'pro') return 'free';
-  if (data.status !== 'active' && data.status !== 'billing_retry') return 'free';
-  if (data.expires_at && new Date(data.expires_at).getTime() < Date.now()) return 'free';
-  return 'pro';
+  return data?.tier === 'pro' ? 'pro' : 'free';
 }
 
 export type QuotaResult =
