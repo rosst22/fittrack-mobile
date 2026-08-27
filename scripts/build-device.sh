@@ -43,7 +43,7 @@ echo "▸ Building (first run takes 10–20 min)…"
 npx expo run:ios --device "$DEVICE" --no-install || true
 
 APP=$(find "$HOME/Library/Developer/Xcode/DerivedData" \
-  -maxdepth 5 -type d -name "FitTrack.app" -path "*Debug-iphoneos*" \
+  -maxdepth 5 -type d -name "FitTrackAI.app" -path "*Debug-iphoneos*" \
   -exec ls -dt {} + 2>/dev/null | head -1)
 [ -n "$APP" ] || { echo "Could not locate the built .app"; exit 1; }
 echo "▸ Built: $APP"
