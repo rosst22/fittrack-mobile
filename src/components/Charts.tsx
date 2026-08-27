@@ -236,12 +236,27 @@ export function DualLineChart({
   return (
     <>
       <Frame title={title} points={a} max={max} unit={unit}>
-        {(w, plotH) => (
-          <>
-            <Path d={build(a, w, plotH)} stroke={colors.accent} strokeWidth={2} fill="none" />
-            <Path d={build(b, w, plotH)} stroke="#F59E0B" strokeWidth={2} fill="none" />
-          </>
-        )}
+        {(w, plotH) => {
+          const step = a.length > 1 ? w / (a.length - 1) : w;
+          const y = (v: number) => PAD_TOP + plotH - (v / max) * plotH;
+          // An SVG path containing only a moveto draws nothing, so a series with
+          // a single logged day would render as an empty chart. Dots make every
+          // point visible regardless of how many neighbours it has.
+          const dots = (pts: Point[], fill: string) =>
+            pts.map((p, i) =>
+              p.value == null ? null : (
+                <Circle key={`${fill}-${i}`} cx={i * step} cy={y(p.value)} r={2.5} fill={fill} />
+              )
+            );
+          return (
+            <>
+              <Path d={build(a, w, plotH)} stroke={colors.accent} strokeWidth={2} fill="none" />
+              <Path d={build(b, w, plotH)} stroke="#F59E0B" strokeWidth={2} fill="none" />
+              {dots(a, colors.accent)}
+              {dots(b, '#F59E0B')}
+            </>
+          );
+        }}
       </Frame>
       <View style={styles.legend}>
         <View style={styles.legendItem}>

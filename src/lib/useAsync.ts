@@ -13,6 +13,10 @@ export function useAsync<T>(loader: () => Promise<T>, deps: unknown[] = []) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  // Tracked separately from `data` because a loader may legitimately resolve to
+  // null — getProfile() does, for any account without a profile row. Treating
+  // "data is null" as "still loading" leaves those screens spinning forever.
+  const [loading, setLoading] = useState(true);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const run = useCallback(loader, deps);
@@ -23,6 +27,8 @@ export function useAsync<T>(loader: () => Promise<T>, deps: unknown[] = []) {
       setData(await run());
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong.');
+    } finally {
+      setLoading(false);
     }
   }, [run]);
 
@@ -42,5 +48,5 @@ export function useAsync<T>(loader: () => Promise<T>, deps: unknown[] = []) {
     setRefreshing(false);
   }, [load]);
 
-  return { data, error, refreshing, onRefresh, reload: load };
+  return { data, error, loading, refreshing, onRefresh, reload: load };
 }
