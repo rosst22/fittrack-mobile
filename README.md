@@ -11,8 +11,13 @@ It shares a database and its domain logic with an existing Next.js web app
 ([fittrack.rosstoma.me](https://fittrack.rosstoma.me)), so the two clients read
 and write the same rows.
 
-<!-- Screenshots go here once the app is running on a device.
-     Three side by side: Today dashboard, photo scanner, exercise history. -->
+<p align="center">
+  <img src="docs/screenshots/01-IMG_1605.png" width="19%" alt="Photo scanner">
+  <img src="docs/screenshots/02-IMG_1608.png" width="19%" alt="Scanned meal">
+  <img src="docs/screenshots/03-IMG_1604.png" width="19%" alt="Today dashboard">
+  <img src="docs/screenshots/04-IMG_1609.png" width="19%" alt="Trends">
+  <img src="docs/screenshots/05-IMG_1607.png" width="19%" alt="Workouts">
+</p>
 
 ---
 

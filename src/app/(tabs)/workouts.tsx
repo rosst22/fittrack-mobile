@@ -9,6 +9,11 @@ import { deleteWorkout, getRecentWorkouts } from '@/lib/queries';
 import { formatSets, formatVolume, orderSets, volume } from '@/lib/strength';
 import { useAsync } from '@/lib/useAsync';
 
+/** WHOOP imports arrive lowercase ("activity", "weightlifting"). */
+function titleCase(s: string) {
+  return s.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export default function WorkoutsScreen() {
   const { data, error, refreshing, onRefresh, reload } = useAsync(() => getRecentWorkouts(), []);
 
@@ -52,7 +57,7 @@ export default function WorkoutsScreen() {
               <Row>
                 <Pressable style={{ flex: 1 }} onPress={() => router.push(`/workout/${w.id}`)}>
                   <Row style={{ justifyContent: 'flex-start', gap: spacing.sm }}>
-                    <Text style={styles.name}>{w.name}</Text>
+                    <Text style={styles.name}>{titleCase(w.name)}</Text>
                     {w.source === 'whoop' && <Text style={styles.badge}>WHOOP</Text>}
                   </Row>
                   <Muted style={{ fontSize: 13 }}>{prettyDate(dayKey(w.performed_at))}</Muted>
@@ -77,10 +82,10 @@ export default function WorkoutsScreen() {
                           })
                         }
                       >
-                        <Text style={styles.exName}>{ex.name}</Text>
+                        <Text style={styles.exName}>{titleCase(ex.name)}</Text>
                       </Pressable>
                       {ex.duration_min > 0 && (
-                        <Muted style={{ fontSize: 12 }}>{ex.duration_min} min</Muted>
+                        <Muted style={{ fontSize: 12 }}>{Math.round(Number(ex.duration_min))} min</Muted>
                       )}
                     </Row>
                     {sets.length > 0 && <Muted style={{ fontSize: 13 }}>{formatSets(sets)}</Muted>}
