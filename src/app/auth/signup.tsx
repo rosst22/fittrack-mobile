@@ -28,6 +28,11 @@ export default function SignUpScreen() {
       // No navigation here — the auth gate redirects once the session lands.
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not create the account.');
+    } finally {
+      // Must run on success too. Leaving it only in the catch meant a signup
+      // that worked left the button spinning forever whenever the auth gate did
+      // not swap the navigator promptly — the account existed and the session
+      // was live, but the screen never said so. login.tsx already does this.
       setBusy(false);
     }
   }
