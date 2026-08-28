@@ -89,15 +89,21 @@ Deno.serve(async (req) => {
   const { error } = await admin.from('entitlements').upsert(
     {
       user_id: userId,
+      // entitlements is keyed by (user_id, source) so that a Stripe row and an
+      // App Store row can coexist. This webhook owns exactly one of them, and
+      // the value must be a constant: deriving it from event.store would let a
+      // single subscription land on two different rows and leave a stale 'pro'
+      // behind that nothing ever expires.
+      source: 'app_store',
       tier: granting ? 'pro' : 'free',
-      status: granting ? 'active' : type === 'REFUND' ? 'expired' : 'expired',
+      status: granting ? 'active' : 'expired',
       product_id: event?.product_id ?? null,
       store: event?.store?.toLowerCase() ?? null,
       expires_at: event?.expiration_at_ms ? new Date(event.expiration_at_ms).toISOString() : null,
       revenuecat_customer_id: userId,
       updated_at: new Date().toISOString(),
     },
-    { onConflict: 'user_id' }
+    { onConflict: 'user_id,source' }
   );
 
   if (error) {
