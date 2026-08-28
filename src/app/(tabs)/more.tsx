@@ -7,6 +7,7 @@ import { colors, radius, spacing } from '@/constants/theme';
 import { APP_TZ, dayRange, todayStr } from '@/lib/day';
 import { useAuth } from '@/lib/auth';
 import { useEntitlement } from '@/lib/entitlement';
+import { showProUpsell } from '@/lib/purchases';
 
 type Item = {
   label: string;
@@ -45,7 +46,7 @@ export default function MoreScreen() {
             key={item.href}
             style={[styles.row, i > 0 && styles.rowDivider]}
             onPress={() =>
-              item.pro && tier !== 'pro'
+              item.pro && tier !== 'pro' && showProUpsell()
                 ? router.push('/paywall')
                 : router.push(item.href as never)
             }
@@ -63,7 +64,7 @@ export default function MoreScreen() {
         ))}
       </Card>
 
-      {tier === 'free' ? (
+      {tier === 'free' && showProUpsell() ? (
         <Pressable style={styles.proCard} onPress={() => router.push('/paywall')}>
           <Ionicons name="sparkles" size={24} color={colors.accent} />
           <View style={{ flex: 1 }}>
@@ -74,6 +75,20 @@ export default function MoreScreen() {
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
         </Pressable>
+      ) : tier === 'free' ? (
+        // No way to buy in this build, so state the allowance as a fact rather
+        // than dangling an upgrade the user cannot complete.
+        <Card>
+          <Row>
+            <Row style={{ justifyContent: 'flex-start', gap: spacing.sm, flex: 1 }}>
+              <Ionicons name="camera-outline" size={20} color={colors.accent} />
+              <Text style={styles.proTitle}>Daily AI limits</Text>
+            </Row>
+            <Muted style={{ fontSize: 13 }}>
+              {remainingFor('photo_meal')}/{limitFor('photo_meal')} scans left
+            </Muted>
+          </Row>
+        </Card>
       ) : (
         <Card>
           <Row>

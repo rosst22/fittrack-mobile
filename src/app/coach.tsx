@@ -17,6 +17,7 @@ import { Button, ErrorNote, Muted } from '@/components/ui';
 import { colors, radius, spacing } from '@/constants/theme';
 import { coachChat, QuotaError } from '@/lib/api';
 import { useEntitlement } from '@/lib/entitlement';
+import { showProUpsell } from '@/lib/purchases';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -78,7 +79,7 @@ export default function CoachScreen() {
         <Muted style={{ fontSize: 13 }}>
           {remainingFor('coach_chat')} of {limitFor('coach_chat')} messages left today
         </Muted>
-        {tier === 'free' && (
+        {tier === 'free' && showProUpsell() && (
           <Pressable onPress={() => router.push('/paywall')}>
             <Text style={styles.upgradeLink}>Get more</Text>
           </Pressable>
@@ -124,7 +125,9 @@ export default function CoachScreen() {
         )}
 
         {error && <ErrorNote message={error} />}
-        {needsUpgrade && <Button title="See FitTrack.AI Pro" onPress={() => router.push('/paywall')} />}
+        {needsUpgrade && showProUpsell() && (
+          <Button title="See FitTrack.AI Pro" onPress={() => router.push('/paywall')} />
+        )}
       </ScrollView>
 
       <View style={styles.composer}>

@@ -99,6 +99,22 @@ export function purchasesUnavailableReason(): string | null {
   return null;
 }
 
+/**
+ * Whether the app may advertise Pro at all.
+ *
+ * A build with no RevenueCat key cannot sell anything, and App Review treats a
+ * visible upsell that leads nowhere as broken functionality (guideline 2.1).
+ * So every Pro entry point is gated on this rather than on the tier: when it is
+ * false the app presents itself honestly as free, with quota limits stated as
+ * plain daily limits instead of as an upgrade prompt.
+ *
+ * Setting EXPO_PUBLIC_REVENUECAT_IOS_KEY and rebuilding turns the upsell back
+ * on everywhere at once.
+ */
+export function showProUpsell(): boolean {
+  return isPurchasesAvailable();
+}
+
 export async function getOfferings(): Promise<Package[]> {
   const Purchases = nativeModule();
   if (!Purchases || !isPurchasesAvailable()) return [];

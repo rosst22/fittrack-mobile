@@ -8,6 +8,7 @@ import { colors, radius, spacing } from '@/constants/theme';
 import { deleteAccount } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useEntitlement } from '@/lib/entitlement';
+import { showProUpsell } from '@/lib/purchases';
 
 /**
  * Account management, including deletion.
@@ -71,7 +72,9 @@ export default function AccountScreen() {
             onPress={() => Linking.openURL('https://apps.apple.com/account/subscriptions')}
           />
         ) : (
-          <Button title="See FitTrack.AI Pro" onPress={() => router.push('/paywall')} />
+          showProUpsell() && (
+            <Button title="See FitTrack.AI Pro" onPress={() => router.push('/paywall')} />
+          )
         )}
       </Card>
 

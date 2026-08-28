@@ -10,6 +10,7 @@ import { Button, Card, ErrorNote, Input, Muted, Row, SectionLabel } from '@/comp
 import { colors, radius, spacing } from '@/constants/theme';
 import { analyzeMeal, QuotaError, type AnalyzedIngredient } from '@/lib/api';
 import { useEntitlement } from '@/lib/entitlement';
+import { showProUpsell } from '@/lib/purchases';
 import type { NewIngredient } from '@/lib/queries';
 
 /**
@@ -160,7 +161,7 @@ export function PhotoScanner({
             <Muted style={{ fontSize: 13 }}>
               {remaining} of {limitFor('photo_meal')} scans left today
             </Muted>
-            {tier === 'free' && (
+            {tier === 'free' && showProUpsell() && (
               <Pressable onPress={() => router.push('/paywall')}>
                 <Text style={styles.upgradeLink}>Get more</Text>
               </Pressable>
@@ -168,7 +169,7 @@ export function PhotoScanner({
           </Row>
 
           {error && <ErrorNote message={error} />}
-          {needsUpgrade && (
+          {needsUpgrade && showProUpsell() && (
             <Button title="See FitTrack.AI Pro" onPress={() => router.push('/paywall')} />
           )}
 
