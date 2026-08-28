@@ -1,4 +1,4 @@
-# FitTrackAI for iOS
+# FitTrack.AI for iOS
 
 A native iOS app for tracking meals, workouts, and body metrics — with an AI
 photo scanner that reads a plate of food or a nutrition label and fills in the

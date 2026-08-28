@@ -1,5 +1,5 @@
 // All day-bucketing and time display happen in the user's home timezone, not
-// the server's. FitTrackAI renders server-side on UTC (Vercel), so without this a
+// the server's. FitTrack.AI renders server-side on UTC (Vercel), so without this a
 // meal logged at 9pm Toronto (= 1am UTC the next day) gets filed under — and
 // displayed as — the wrong calendar day. Ross is in Eastern time (Toronto /
 // Boston); change APP_TZ if that ever stops being true.

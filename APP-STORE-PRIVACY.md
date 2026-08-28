@@ -9,7 +9,7 @@ over-declaring — puts scary labels on your listing that aren't true.
 **The single most important answer: you are NOT tracking.** Choose
 **"No, we do not collect data used to track you"** when asked about tracking.
 Apple defines tracking as linking user data with third-party data for
-advertising, or sharing it with data brokers. FitTrackAI does neither, has no
+advertising, or sharing it with data brokers. FitTrack.AI does neither, has no
 advertising SDK, and no analytics SDK. Answering yes would force an
 App Tracking Transparency prompt you don't need and shouldn't show.
 
@@ -91,7 +91,7 @@ they should agree:
 
 ## App Review notes — paste this into the Review Notes field
 
-> FitTrackAI is a personal meal and workout tracker.
+> FitTrack.AI is a personal meal and workout tracker.
 >
 > All tracking features are free. The subscription raises daily limits on two AI
 > features — photo-based nutrition scanning and a coaching chat — which cost per

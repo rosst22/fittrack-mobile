@@ -60,7 +60,7 @@ function AuthGate() {
       <Stack.Screen name="coach" options={{ title: 'AI coach' }} />
       <Stack.Screen
         name="paywall"
-        options={{ title: 'FitTrackAI Pro', presentation: 'modal' }}
+        options={{ title: 'FitTrack.AI Pro', presentation: 'modal' }}
       />
       <Stack.Screen name="legal" options={{ headerShown: false }} />
     </Stack>

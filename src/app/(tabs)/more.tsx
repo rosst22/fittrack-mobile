@@ -31,7 +31,7 @@ export default function MoreScreen() {
   const { tier, limitFor, remainingFor } = useEntitlement();
 
   function confirmSignOut() {
-    Alert.alert('Sign out', 'Sign out of FitTrackAI?', [
+    Alert.alert('Sign out', 'Sign out of FitTrack.AI?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign out', style: 'destructive', onPress: () => signOut() },
     ]);
@@ -67,7 +67,7 @@ export default function MoreScreen() {
         <Pressable style={styles.proCard} onPress={() => router.push('/paywall')}>
           <Ionicons name="sparkles" size={24} color={colors.accent} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.proTitle}>FitTrackAI Pro</Text>
+            <Text style={styles.proTitle}>FitTrack.AI Pro</Text>
             <Muted style={{ fontSize: 13 }}>
               {remainingFor('photo_meal')} of {limitFor('photo_meal')} photo scans left today
             </Muted>
@@ -79,7 +79,7 @@ export default function MoreScreen() {
           <Row>
             <Row style={{ justifyContent: 'flex-start', gap: spacing.sm, flex: 1 }}>
               <Ionicons name="checkmark-circle" size={20} color={colors.accent} />
-              <Text style={styles.proTitle}>FitTrackAI Pro</Text>
+              <Text style={styles.proTitle}>FitTrack.AI Pro</Text>
             </Row>
             <Muted style={{ fontSize: 13 }}>
               {remainingFor('photo_meal')}/{limitFor('photo_meal')} scans left

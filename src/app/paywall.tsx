@@ -125,7 +125,7 @@ export default function PaywallScreen() {
         <Card>
           <Row style={{ justifyContent: 'flex-start', gap: spacing.sm }}>
             <Ionicons name="checkmark-circle" size={26} color={colors.accent} />
-            <Text style={styles.proTitle}>You&apos;re on FitTrackAI Pro</Text>
+            <Text style={styles.proTitle}>You&apos;re on FitTrack.AI Pro</Text>
           </Row>
           {source === 'stripe' ? (
             <>
@@ -155,9 +155,9 @@ export default function PaywallScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
-        <Text style={styles.heroTitle}>FitTrackAI Pro</Text>
+        <Text style={styles.heroTitle}>FitTrack.AI Pro</Text>
         <Muted style={{ textAlign: 'center' }}>
-          Everything in FitTrackAI stays free — logging, workouts, trends, the weekly review. Pro
+          Everything in FitTrack.AI stays free — logging, workouts, trends, the weekly review. Pro
           raises the limits on the AI features, which cost real money to run.
         </Muted>
       </View>

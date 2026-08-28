@@ -7,7 +7,7 @@ until Apple Developer enrolment is approved.
 
 ## Name
 
-**FitTrackAI**, decided 2026-08-27.
+**FitTrack.AI**, decided 2026-08-27.
 
 Note the risk that was raised and accepted: "FitTrack" is an existing fitness
 brand (fittrack.com, smart scales). Adding "AI" does not clear a trademark
@@ -27,7 +27,7 @@ it would orphan the App Store Connect record.
 *30 characters max. Shown under the icon.*
 
 ```
-FitTrackAI: Meal & Lift Log
+FitTrack.AI: Meal & Lift Log
 ```
 *(27 chars)*
 
@@ -68,7 +68,7 @@ calorie,macro,nutrition,food,diet,gym,workout,strength,protein,tracker,fitness,w
 ```
 Track what you eat and what you lift, without the tedium.
 
-Point your camera at a plate of food or a nutrition label, and FitTrackAI fills in
+Point your camera at a plate of food or a nutrition label, and FitTrack.AI fills in
 the ingredients and macros for you. No searching a database for "grilled chicken
 breast" and guessing the portion.
 
@@ -106,13 +106,13 @@ The AI features cost real money to run, so they carry daily limits:
 • Pro: 15 photo scans, 30 text estimates, 15 coach messages per day
 
 YOUR DATA
-FitTrackAI does not track you. There is no advertising SDK and no analytics SDK.
+FitTrack.AI does not track you. There is no advertising SDK and no analytics SDK.
 Your data is yours, scoped to your account at the database level, and you can
 delete your account and everything in it from inside the app at any time.
 Meal photos are resized on your phone before upload, which removes the location
 data iPhones embed in photos by default.
 
-FitTrackAI is a tracking tool, not a medical device. Calorie and macro figures are
+FitTrack.AI is a tracking tool, not a medical device. Calorie and macro figures are
 estimates and can be wrong. Talk to a qualified professional before making
 significant changes to your diet or training.
 ```
@@ -157,11 +157,11 @@ App Store Connect → your app → **Subscriptions** → create a group, then:
 
 | Field | Value |
 |---|---|
-| Reference Name | FitTrackAI Pro Monthly *(internal only)* |
+| Reference Name | FitTrack.AI Pro Monthly *(internal only)* |
 | Product ID | `me.rosstoma.fittrack.pro.monthly` |
 | Duration | 1 Month |
 | Price | $4.99 USD |
-| Display Name | FitTrackAI Pro |
+| Display Name | FitTrack.AI Pro |
 | Description | Higher daily limits on photo scanning, AI meal estimates and the coach. |
 
 **A subscription needs its own screenshot** showing the paywall, plus a review
@@ -173,7 +173,7 @@ before you submit.
 ## Review Notes — paste verbatim
 
 ```
-FitTrackAI is a personal meal and workout tracker.
+FitTrack.AI is a personal meal and workout tracker.
 
 All tracking features are free and unlimited. The subscription raises daily
 limits on two AI features — photo-based nutrition scanning and a coaching chat —

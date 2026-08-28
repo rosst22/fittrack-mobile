@@ -176,7 +176,7 @@ function page({ title, bodyHtml, description }) {
 <main>
 <a class="back" href="/">&larr; rosstoma.me</a>
 ${bodyHtml}
-<footer>FitTrackAI &middot; <a href="/fittrack/privacy/">Privacy Policy</a> &middot; <a href="/fittrack/terms/">Terms of Use</a></footer>
+<footer>FitTrack.AI &middot; <a href="/fittrack/privacy/">Privacy Policy</a> &middot; <a href="/fittrack/terms/">Terms of Use</a></footer>
 </main>
 </body>
 </html>
@@ -187,14 +187,14 @@ const docs = [
   {
     src: 'legal/privacy-policy.md',
     dir: 'privacy',
-    title: 'FitTrackAI — Privacy Policy',
-    description: 'How the FitTrackAI iOS app collects, uses and protects your data.',
+    title: 'FitTrack.AI — Privacy Policy',
+    description: 'How the FitTrack.AI iOS app collects, uses and protects your data.',
   },
   {
     src: 'legal/terms-of-use.md',
     dir: 'terms',
-    title: 'FitTrackAI — Terms of Use',
-    description: 'Terms governing use of the FitTrackAI iOS app.',
+    title: 'FitTrack.AI — Terms of Use',
+    description: 'Terms governing use of the FitTrack.AI iOS app.',
   },
 ];
 

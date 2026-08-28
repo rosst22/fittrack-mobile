@@ -1,8 +1,8 @@
-# FitTrackAI Terms of Use
+# FitTrack.AI Terms of Use
 
 **Last updated: 25 August 2026**
 
-By using FitTrackAI you agree to these terms. If you do not agree, do not use the
+By using FitTrack.AI you agree to these terms. If you do not agree, do not use the
 app.
 
 Contact: **support@rosstoma.me**
@@ -11,14 +11,14 @@ Contact: **support@rosstoma.me**
 
 ## 1. Not medical advice
 
-FitTrackAI is a tracking tool. It is **not a medical device** and does not provide
+FitTrack.AI is a tracking tool. It is **not a medical device** and does not provide
 medical advice, diagnosis, or treatment.
 
 Calorie, macronutrient and calorie-burn figures — including anything produced by
 the AI features — are **estimates and can be wrong**. Basal metabolic rate is
 calculated from a general population formula and may not reflect your body.
 
-Do not rely on FitTrackAI for medical decisions. Consult a qualified health
+Do not rely on FitTrack.AI for medical decisions. Consult a qualified health
 professional before changing your diet or exercise, particularly if you have a
 medical condition, are pregnant, or have a history of disordered eating.
 
@@ -40,8 +40,8 @@ This is immediate and irreversible.
 
 ## 3. Subscriptions
 
-FitTrackAI's tracking features — meals, workouts, trends, goals, the weekly review
-— are free. **FitTrackAI Pro** raises the daily limits on the AI features, which
+FitTrack.AI's tracking features — meals, workouts, trends, goals, the weekly review
+— are free. **FitTrack.AI Pro** raises the daily limits on the AI features, which
 cost us money for every call.
 
 - Payment is charged to your **Apple ID** at confirmation of purchase.
@@ -50,7 +50,7 @@ cost us money for every call.
 - Your account is charged for renewal within 24 hours before the period ends.
 - Manage or cancel in **Settings → Apple ID → Subscriptions**. Cancelling stops
   future renewals; it does not refund the current period.
-- **Deleting your FitTrackAI account does not cancel your subscription.** Apple
+- **Deleting your FitTrack.AI account does not cancel your subscription.** Apple
   controls billing and you must cancel it there.
 - Refunds are handled by Apple under their policies, not by us.
 
@@ -77,7 +77,7 @@ We may suspend or terminate an account that breaks these rules.
 
 ## 5. Your content
 
-You keep ownership of everything you put into FitTrackAI. You grant us only the
+You keep ownership of everything you put into FitTrack.AI. You grant us only the
 limited licence needed to run the service for you: storing your data, and
 sending the content of an AI request to our AI provider to generate your result.
 We do not use your content for any other purpose.
@@ -86,7 +86,7 @@ We do not use your content for any other purpose.
 
 ## 6. Availability
 
-FitTrackAI is provided "as is", with no warranty of any kind. We do not guarantee
+FitTrack.AI is provided "as is", with no warranty of any kind. We do not guarantee
 it will be available, uninterrupted, or error-free. Features may change or be
 withdrawn.
 
@@ -100,7 +100,7 @@ depends on, including Supabase, Anthropic, Apple, and WHOOP.
 ## 7. Liability
 
 To the maximum extent permitted by law, our total liability arising out of your
-use of FitTrackAI is limited to the amount you paid us in the 12 months before the
+use of FitTrack.AI is limited to the amount you paid us in the 12 months before the
 claim, or CAD $50, whichever is greater.
 
 We are not liable for indirect, incidental, or consequential damages, including
@@ -112,8 +112,8 @@ Nothing here limits liability that cannot legally be limited.
 
 ## 8. Apple
 
-Apple is not a party to these terms and has no responsibility for FitTrackAI. Apple
-has no obligation to provide support for it. If FitTrackAI fails to conform to any
+Apple is not a party to these terms and has no responsibility for FitTrack.AI. Apple
+has no obligation to provide support for it. If FitTrack.AI fails to conform to any
 applicable warranty, you may notify Apple, and Apple will refund the purchase
 price; to the maximum extent permitted by law, Apple has no other warranty
 obligation. Apple is a third-party beneficiary of these terms and may enforce
@@ -132,4 +132,4 @@ rules.
 ## 10. Changes
 
 We may update these terms. Material changes will be announced in the app before
-taking effect. Continuing to use FitTrackAI after that means you accept them.
+taking effect. Continuing to use FitTrack.AI after that means you accept them.

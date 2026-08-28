@@ -64,8 +64,8 @@ export function PhotoScanner({
     if (!permission.granted) {
       setError(
         source === 'camera'
-          ? 'Camera access is off. Turn it on in Settings → FitTrackAI.'
-          : 'Photo access is off. Turn it on in Settings → FitTrackAI.'
+          ? 'Camera access is off. Turn it on in Settings → FitTrack.AI.'
+          : 'Photo access is off. Turn it on in Settings → FitTrack.AI.'
       );
       return;
     }
@@ -169,7 +169,7 @@ export function PhotoScanner({
 
           {error && <ErrorNote message={error} />}
           {needsUpgrade && (
-            <Button title="See FitTrackAI Pro" onPress={() => router.push('/paywall')} />
+            <Button title="See FitTrack.AI Pro" onPress={() => router.push('/paywall')} />
           )}
 
           {preview ? (
