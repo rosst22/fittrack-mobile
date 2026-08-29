@@ -11,6 +11,14 @@
 -- lifted" on Trends, and no per-set logging visible anywhere, despite per-set
 -- logging being the differentiator the description leads with.
 --
+-- Timestamps are anchored to local midnight (day0) rather than offset from
+-- now(), so the data lands on the intended calendar days no matter what time
+-- the script is run — running it just after midnight otherwise pushed every
+-- meal onto the previous day and left Today empty.
+--
+-- Re-run it shortly before submitting: the timestamps are absolute, so the
+-- 'today' data ages out if review happens days later.
+--
 -- Run in the Supabase SQL Editor. Safe to run more than once: it deletes the
 -- demo user's existing rows first, and it touches nothing belonging to anyone
 -- else.
@@ -20,12 +28,19 @@
 
 do $$
 declare
-  uid uuid;
+  uid  uuid;
+  -- Local midnight today, as an instant. The database runs in UTC but the app
+  -- buckets days in APP_TZ (America/Toronto, see src/lib/day.ts), so anchoring
+  -- on day0 would put every row at 8pm the previous local
+  -- day and shift the whole dataset back by one.
+  day0 timestamptz;
   m   uuid;
   w   uuid;
   we  uuid;
   d   int;
 begin
+  day0 := date_trunc('day', now() at time zone 'America/Toronto') at time zone 'America/Toronto';
+
   select id into uid from auth.users where email = 'fittrack.review@gmail.com';
   if uid is null then
     raise exception 'No account for fittrack.review@gmail.com — create it in the app first.';
@@ -63,7 +78,7 @@ begin
   for d in 0..13 loop
     -- Breakfast
     insert into meals (user_id, name, eaten_at)
-    values (uid, 'Greek yogurt, berries and granola', now() - (d || ' days')::interval - interval '9 hours')
+    values (uid, 'Greek yogurt, berries and granola', day0 - (d || ' days')::interval + interval '8 hours')
     returning id into m;
     insert into meal_ingredients (meal_id, name, weight_g, calories, protein_g, carbs_g, fat_g, micronutrients) values
       (m, 'Greek yogurt, plain 2%', 200, 146, 20, 8, 4,  '{"Fiber":{"amount":0,"unit":"g"}}'),
@@ -72,7 +87,7 @@ begin
 
     -- Lunch
     insert into meals (user_id, name, eaten_at)
-    values (uid, 'Chipotle chicken bowl', now() - (d || ' days')::interval - interval '5 hours')
+    values (uid, 'Chipotle chicken bowl', day0 - (d || ' days')::interval + interval '12 hours 30 minutes')
     returning id into m;
     insert into meal_ingredients (meal_id, name, weight_g, calories, protein_g, carbs_g, fat_g, micronutrients) values
       (m, 'Chicken (sofritas/grilled)', 150, 190, 38,  0,  4, '{"Sodium":{"amount":620,"unit":"mg"}}'),
@@ -83,7 +98,7 @@ begin
 
     -- Dinner
     insert into meals (user_id, name, eaten_at)
-    values (uid, 'Salmon, rice and broccoli', now() - (d || ' days')::interval - interval '1 hour')
+    values (uid, 'Salmon, rice and broccoli', day0 - (d || ' days')::interval + interval '19 hours')
     returning id into m;
     insert into meal_ingredients (meal_id, name, weight_g, calories, protein_g, carbs_g, fat_g, micronutrients) values
       (m, 'Salmon fillet',  200, 412, 44,  0, 26, '{"Potassium":{"amount":800,"unit":"mg"}}'),
@@ -91,9 +106,9 @@ begin
       (m, 'Broccoli',       150,  51,  4, 10,  1, '{"Fiber":{"amount":4,"unit":"g"}}');
 
     insert into water_logs (user_id, amount_oz, logged_at)
-    values (uid, 24, now() - (d || ' days')::interval - interval '8 hours'),
-           (uid, 24, now() - (d || ' days')::interval - interval '4 hours'),
-           (uid, 32, now() - (d || ' days')::interval - interval '2 hours');
+    values (uid, 24, day0 - (d || ' days')::interval + interval '9 hours'),
+           (uid, 24, day0 - (d || ' days')::interval + interval '14 hours'),
+           (uid, 32, day0 - (d || ' days')::interval + interval '18 hours');
   end loop;
 
   -- ------------------------------------------------------------- workouts
@@ -102,7 +117,7 @@ begin
 
   -- Push day, today
   insert into workouts (user_id, name, bodyweight_lb, performed_at, source)
-  values (uid, 'Push day', 178, now() - interval '3 hours', 'manual')
+  values (uid, 'Push day', 178, day0 + interval '17 hours', 'manual')
   returning id into w;
 
   insert into workout_exercises (workout_id, name, category, met, duration_min, calories)
@@ -122,7 +137,7 @@ begin
 
   -- Pull day, two days ago
   insert into workouts (user_id, name, bodyweight_lb, performed_at, source)
-  values (uid, 'Pull day', 178, now() - interval '2 days', 'manual')
+  values (uid, 'Pull day', 178, day0 - interval '2 days' + interval '17 hours', 'manual')
   returning id into w;
 
   insert into workout_exercises (workout_id, name, category, met, duration_min, calories)
@@ -137,7 +152,7 @@ begin
 
   -- Leg day, four days ago
   insert into workouts (user_id, name, bodyweight_lb, performed_at, source)
-  values (uid, 'Leg day', 177, now() - interval '4 days', 'manual')
+  values (uid, 'Leg day', 177, day0 - interval '4 days' + interval '17 hours', 'manual')
   returning id into w;
 
   insert into workout_exercises (workout_id, name, category, met, duration_min, calories)
@@ -152,7 +167,7 @@ begin
 
   -- A run, six days ago, so cardio appears alongside lifting
   insert into workouts (user_id, name, bodyweight_lb, performed_at, source)
-  values (uid, 'Easy run', 177, now() - interval '6 days', 'manual')
+  values (uid, 'Easy run', 177, day0 - interval '6 days' + interval '7 hours', 'manual')
   returning id into w;
   insert into workout_exercises (workout_id, name, category, met, duration_min, calories)
   values (w, 'Running', 'cardio', 9.0, 32, 425);
