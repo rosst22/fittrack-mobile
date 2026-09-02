@@ -231,13 +231,17 @@ secret — are never in the bundle. They live as Supabase Edge Function secrets.
 
 ## Status
 
-Working and feature-complete for its core loop; not yet on the App Store.
+**Version 1.0 was submitted to App Store review on 2 September 2026** and is
+`WAITING_FOR_REVIEW`.
 
-**Done** — auth, all tracking screens, AI photo scanner and coach, subscription
-paywall, in-app account deletion, privacy policy and terms.
+1.0 ships as a free app that sells nothing: `EXPO_PUBLIC_REVENUECAT_IOS_KEY` is
+blank, so `showProUpsell()` is false and every Pro entry point is hidden. The
+AI features run on the free daily allowances, enforced server-side.
 
-**Next** — HealthKit integration, push notifications, App Store Connect setup
-(subscription product, screenshots, privacy labels), submission.
+**Next** — in-app purchase (see `LAUNCH.md`), HealthKit, push notifications.
 
 Not yet ported from the web app: USDA food search and WHOOP sync, both of which
 need OAuth secrets that can't live on a phone.
+
+See `LAUNCH.md` for how to cut a build, and for the signing gotchas that cost
+several days the first time.

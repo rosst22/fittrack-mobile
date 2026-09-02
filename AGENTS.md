@@ -33,12 +33,25 @@ ignore `Intl`'s `timeZone` option. Do not delete it.
 
 ## Shared files — edit in both repos
 
-These six are byte-identical copies from `~/meal-tracker/src/lib/`:
+These six are copies from `~/meal-tracker/src/lib/`:
 
     day.ts   strength.ts   weekReview.ts   exercises.ts   micros.ts   profile.ts
 
 A change to any of them must be mirrored in the web app, or the two clients will
 disagree about the same data. Their tests came along; keep them passing.
+
+**`day.ts` has one deliberate divergence — do not "fix" it.** This copy resolves
+`APP_TZ` from the device; the web copy pins the constant `"America/Toronto"`.
+That is not drift. The web app renders server-side on Vercel, where Intl
+resolves to UTC, so deriving the zone there reintroduces the day-shift bug the
+constant exists to prevent. A phone reports the zone the user is standing in,
+which is the only correct answer for an app shipping to 175 countries — it was
+previously hardcoded to Eastern, so a user in California logging dinner at 9pm
+saw it land on tomorrow. Mirror everything in `day.ts` EXCEPT `resolveTimeZone()`
+and the `APP_TZ` line.
+
+Consequence for tests: `vitest.config.ts` pins `TZ=America/Toronto` so the
+Toronto assertions in `day.test.ts` stay deterministic on any machine.
 
 ## Schema
 
@@ -62,6 +75,15 @@ into the Supabase SQL Editor.
 npx tsc --noEmit                 # types
 npx vitest run                   # 74 domain tests
 npx expo export --platform ios   # catches runtime import errors
+```
+
+For anything touching native code or signing, also compile Release — it catches
+what bundling cannot:
+
+```bash
+xcodebuild build -workspace ios/FitTrackAI.xcworkspace -scheme FitTrackAI \
+  -configuration Release -destination 'generic/platform=iOS' \
+  -derivedDataPath .build/relcheck/dd CODE_SIGNING_ALLOWED=NO
 ```
 
 Bundling is not the same as running. The app is auth-gated, so an agent cannot
