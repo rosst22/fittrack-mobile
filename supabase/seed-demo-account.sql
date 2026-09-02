@@ -19,6 +19,10 @@
 -- Re-run it shortly before submitting: the timestamps are absolute, so the
 -- 'today' data ages out if review happens days later.
 --
+-- It also grants the demo account Pro (see the bottom of the block), because the
+-- free tier's one-coach-message-a-day allowance is not enough for a reviewer to
+-- judge the feature the listing leads with.
+--
 -- Run in the Supabase SQL Editor. Safe to run more than once: it deletes the
 -- demo user's existing rows first, and it touches nothing belonging to anyone
 -- else.
@@ -172,5 +176,25 @@ begin
   insert into workout_exercises (workout_id, name, category, met, duration_min, calories)
   values (w, 'Running', 'cardio', 9.0, 32, 425);
 
-  raise notice 'Seeded demo account %', uid;
+  -- ------------------------------------------------------------------ Pro
+  -- App Review has to be able to exercise the AI features, and the free tier
+  -- allows ONE coach message and three photo scans a day. A reviewer who spends
+  -- those on test shots then meets "that's all the AI for today" on the feature
+  -- the App Store description leads with — and, because this build ships with no
+  -- RevenueCat key, there is deliberately no upgrade button to explain it.
+  --
+  -- A promotional grant sidesteps that: 15 scans and 15 coach messages a day,
+  -- with a $0.45 spend cap instead of $0.04. It writes the 'promotional' source,
+  -- which sits alongside app_store/stripe and is never overwritten by a webhook.
+  insert into entitlements (user_id, source, tier, status, product_id, store,
+                            expires_at, updated_at)
+  values (uid, 'promotional', 'pro', 'active', 'app_review', 'promotional',
+          now() + interval '1 year', now())
+  on conflict (user_id, source) do update
+    set tier       = excluded.tier,
+        status     = excluded.status,
+        expires_at = excluded.expires_at,
+        updated_at = now();
+
+  raise notice 'Seeded demo account % and granted Pro for App Review', uid;
 end $$;

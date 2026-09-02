@@ -41,12 +41,21 @@ export default function AccountScreen() {
             setError(null);
             try {
               await deleteAccount();
-              // The user row is gone, so the session is already invalid; this
-              // just clears it locally and drops us back to the login screen.
-              await signOut();
             } catch (e) {
               setError(e instanceof Error ? e.message : 'Could not delete the account.');
               setBusy(false);
+              return;
+            }
+            // Past this point the account IS gone, so nothing here may report
+            // failure. signOut() talks to a server that has just deleted the
+            // user; letting it throw into the block above showed "Could not
+            // delete the account" after a deletion that had already succeeded.
+            // The user row is gone, so this only clears the local session and
+            // drops us back to the login screen.
+            try {
+              await signOut();
+            } catch {
+              // Already unauthenticated as far as the server is concerned.
             }
           },
         },

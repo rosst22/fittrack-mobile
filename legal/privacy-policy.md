@@ -74,11 +74,6 @@ sensitive and handle it accordingly:
 
 - It is stored in a database where **row-level security** restricts every row to
   the account that created it. Other users cannot read your data.
-- If you connect Apple Health, that data is used **only** to display and record
-  your fitness information inside the app. In line with Apple's requirements, we
-  do **not** use Apple Health data for advertising, marketing, or data mining,
-  we do **not** disclose it to third parties, and we do **not** store it in
-  iCloud.
 - **FitTrack.AI is not a medical device.** Nothing in it is medical advice. AI
   estimates are approximate and can be wrong. Do not use it to diagnose or treat
   anything, and speak to a qualified professional about any medical concern.

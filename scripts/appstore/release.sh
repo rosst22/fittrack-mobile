@@ -64,7 +64,11 @@ cat > "$BUILD/ExportOptions.plist" <<'PLIST'
   <key>method</key><string>app-store-connect</string>
   <key>destination</key><string>export</string>
   <key>signingStyle</key><string>automatic</string>
-  <key>teamID</key><string>63CJB3ZZYF</string>
+  <!-- The ENROLLED team, which is the certificate's OU — not the parenthesised
+       value in its Common Name. "Apple Development: … (63CJB3ZZYF)" reads like a
+       team id but 63CJB3ZZYF is the personal team; exporting under it is what
+       produced 'Team "Ross Toma (Personal Team)" is not enrolled'. -->
+  <key>teamID</key><string>FMQ2H9F8WV</string>
   <key>uploadSymbols</key><true/>
 </dict>
 </plist>

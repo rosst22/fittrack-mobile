@@ -44,6 +44,11 @@ FitTrack.AI's tracking features — meals, workouts, trends, goals, the weekly r
 — are free. **FitTrack.AI Pro** raises the daily limits on the AI features, which
 cost us money for every call.
 
+**Version 1.0 does not sell anything.** FitTrack.AI Pro is not yet available for
+purchase, and there is nothing to buy anywhere in this version of the app. The AI
+features run on the free daily allowances described below. The rest of this
+section describes how Pro will work when it goes on sale in a later release.
+
 - Payment is charged to your **Apple ID** at confirmation of purchase.
 - Subscriptions **renew automatically** unless auto-renew is turned off at least
   24 hours before the end of the current period.

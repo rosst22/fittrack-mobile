@@ -12,9 +12,13 @@ import {
 } from "./day";
 
 // Day bucketing has broken twice in production, both times because a timestamp
-// got formatted in the server's timezone (Vercel runs UTC) instead of Toronto.
-// These tests pin the Toronto behavior. They are written to be correct no matter
-// what timezone the test process itself runs in.
+// got formatted in the server's timezone (Vercel runs UTC) instead of the user's.
+// These tests pin the Toronto behaviour.
+//
+// APP_TZ is now resolved from the device, so these assertions depend on the
+// timezone the test process runs in. vitest.config.ts pins TZ=America/Toronto
+// so they stay deterministic on any machine — run them with a different TZ and
+// the offsets below are expected to change.
 
 describe("dayKey", () => {
   it("files a late-evening Toronto meal under that same Toronto day", () => {

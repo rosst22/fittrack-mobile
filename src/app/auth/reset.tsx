@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Linking from 'expo-linking';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from 'react-native';
 
 import { Button, Card, ErrorNote, Input, Loading, Muted } from '@/components/ui';
@@ -29,14 +29,26 @@ export default function ResetPasswordScreen() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Set once the credential in the LINK has been redeemed. It exists so the
+  // effect can re-run (params arrive in more than one pass on a warm start)
+  // without redeeming a single-use code twice, which would fail the second time
+  // and wrongly report a working link as expired.
+  const recovered = useRef(false);
+
   useEffect(() => {
     let cancelled = false;
 
     async function establish() {
-      // A recovery link may already have been turned into a session by the
-      // auth listener before this screen mounted.
-      const { data: existing } = await supabase.auth.getSession();
-      if (existing.session) return true;
+      if (recovered.current) return true;
+
+      // Deliberately NOT short-circuited on an existing session.
+      //
+      // This used to begin by accepting any session getSession() returned as
+      // proof the link was good. A phone that still had a session persisted
+      // from an earlier login would take that branch, ignore the link
+      // entirely, and then change the password of the ALREADY SIGNED-IN
+      // account rather than the one the email was sent for. Only a credential
+      // carried by the link authorizes this screen.
 
       // Route params cover the warm-start case (app already running).
       let code = params.code;
@@ -60,22 +72,32 @@ export default function ResetPasswordScreen() {
 
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
-        return !error;
+        if (error) return false;
+        recovered.current = true;
+        return true;
       }
       if (accessToken && refreshToken) {
         const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
-        return !error;
+        if (error) return false;
+        recovered.current = true;
+        return true;
       }
       return false;
     }
 
     establish().then((ok) => {
       if (cancelled) return;
-      if (ok) setReady(true);
-      else setLinkError('This reset link is invalid or has expired. Request a new one.');
+      if (ok) {
+        // Clears the error from an earlier pass that ran before the params
+        // had landed.
+        setLinkError(null);
+        setReady(true);
+      } else {
+        setLinkError('This reset link is invalid or has expired. Request a new one.');
+      }
     });
 
     return () => {

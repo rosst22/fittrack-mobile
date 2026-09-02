@@ -1,9 +1,39 @@
-// All day-bucketing and time display happen in the user's home timezone, not
-// the server's. FitTrack.AI renders server-side on UTC (Vercel), so without this a
-// meal logged at 9pm Toronto (= 1am UTC the next day) gets filed under — and
-// displayed as — the wrong calendar day. Ross is in Eastern time (Toronto /
-// Boston); change APP_TZ if that ever stops being true.
-export const APP_TZ = "America/Toronto";
+// All day-bucketing and time display happen in the user's own timezone, never
+// the server's. A meal logged at 9pm Toronto is 1am UTC the next day, so
+// bucketing by UTC files it under — and displays it on — the wrong calendar day.
+//
+// ── THIS IS THE ONE PLACE THIS FILE DIVERGES FROM ~/meal-tracker ──
+//
+// The web copy pins APP_TZ to the constant "America/Toronto". It renders
+// server-side on Vercel, where Intl resolves to UTC, so deriving the zone there
+// would reintroduce the exact bug the constant exists to prevent.
+//
+// A phone is the opposite case: it reports the zone the user is actually
+// standing in, which is the only correct answer for an app shipping to 175
+// countries. Hardcoding Eastern time meant a user in California logging dinner
+// at 9pm PT saw it land on tomorrow and "Today" go empty.
+//
+// When mirroring changes between the two copies, mirror everything EXCEPT
+// resolveTimeZone() and the APP_TZ line below.
+
+/** Used only when the platform cannot report a zone at all. */
+export const FALLBACK_TZ = "America/Toronto";
+
+function resolveTimeZone(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    // A real IANA zone always carries a region prefix ("America/Toronto",
+    // "Europe/London"). A Hermes build without full ICU returns bare "UTC" or
+    // an empty string instead — neither is the user's zone, and treating "UTC"
+    // as one would silently reintroduce the day-shift bug.
+    if (tz && tz.includes("/")) return tz;
+  } catch {
+    // Intl missing entirely.
+  }
+  return FALLBACK_TZ;
+}
+
+export const APP_TZ = resolveTimeZone();
 
 // Wall-clock components of an instant as seen in `tz`.
 function partsInTz(date: Date, tz: string) {

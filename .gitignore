@@ -47,3 +47,6 @@ example
 
 # Supabase CLI scratch
 supabase/.temp/
+
+# Local archive/export scratch (scripts/appstore/release.sh, Release compile checks)
+.build/

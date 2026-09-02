@@ -21,8 +21,18 @@ function AuthGate() {
     // /auth/* is reachable signed-out (password recovery), and /auth/reset
     // must also stay reachable while the temporary recovery session is active.
     const onAuthScreen = segments[0] === 'login' || segments[0] === 'auth';
+    // /auth/reset is the one signed-in auth screen that must NOT be redirected
+    // away: a recovery link produces a real session before the new password has
+    // been chosen, so bouncing to '/' there would strand the user mid-reset.
+    const isReset = segments[0] === 'auth' && segments[1] === 'reset';
+
     if (!session && !onAuthScreen) router.replace('/login');
-    else if (session && segments[0] === 'login') router.replace('/');
+    // Previously this only matched segments[0] === 'login', so a successful
+    // signup — which happens on /auth/signup, where segments[0] is 'auth' —
+    // landed a live session and then went nowhere: the spinner stopped and the
+    // signup form just sat there. signup.tsx deliberately does not navigate
+    // itself, so this gate is the only thing that moves the user into the app.
+    else if (session && onAuthScreen && !isReset) router.replace('/');
   }, [session, loading, segments]);
 
   if (loading) {

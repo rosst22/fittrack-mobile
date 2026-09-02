@@ -1,13 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import * as WebBrowser from 'expo-web-browser';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Card, ErrorNote, Loading, Muted, Row, SectionLabel } from '@/components/ui';
 import { colors, radius, spacing } from '@/constants/theme';
-import { FREE_LIMITS, PRO_LIMITS, stripeCheckoutUrl } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
+import { FREE_LIMITS, PRO_LIMITS } from '@/lib/api';
 import { useEntitlement } from '@/lib/entitlement';
 import {
   getOfferings,
@@ -35,8 +33,18 @@ const PERKS: { icon: keyof typeof Ionicons.glyphMap; title: string; body: string
   },
 ];
 
+/**
+ * There is deliberately no "subscribe on the web" button here.
+ *
+ * Guideline 3.1.3(b) lets a multiplatform app HONOUR a subscription bought
+ * elsewhere — which is why the `source === 'stripe'` branch below survives — but
+ * 3.1.1 forbids linking to an external purchase mechanism from inside the app.
+ * The button that used to sit under "or" opened a Stripe Payment Link in an
+ * in-app browser, which is exactly what 3.1.1 prohibits. It was dormant only
+ * because EXPO_PUBLIC_STRIPE_PAYMENT_LINK happened to be blank; setting that
+ * variable would have shipped a rejection.
+ */
 export default function PaywallScreen() {
-  const { session } = useAuth();
   const { tier, source, refresh } = useEntitlement();
   const [packages, setPackages] = useState<Package[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -44,7 +52,6 @@ export default function PaywallScreen() {
   const [notice, setNotice] = useState<string | null>(null);
 
   const iapUnavailable = purchasesUnavailableReason();
-  const webUrl = session ? stripeCheckoutUrl(session.user.id) : null;
 
   useEffect(() => {
     if (iapUnavailable) {
@@ -78,27 +85,6 @@ export default function PaywallScreen() {
       else setNotice('Payment went through. Unlocking can take a moment — check back shortly.');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'The purchase could not be completed.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function buyOnWeb() {
-    if (!webUrl) return;
-    setError(null);
-    setNotice(null);
-    setBusy(true);
-    try {
-      // Opens an in-app browser and resolves when the user dismisses it, which
-      // is the cue to check whether the Stripe webhook has landed.
-      await WebBrowser.openBrowserAsync(webUrl);
-      if (await waitForEntitlement()) router.back();
-      else
-        setNotice(
-          'If you completed checkout, unlocking can take a moment. Reopen this screen shortly.'
-        );
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not open checkout.');
     } finally {
       setBusy(false);
     }
@@ -205,20 +191,6 @@ export default function PaywallScreen() {
         </Card>
       )}
 
-      {webUrl && (
-        <>
-          <Row style={styles.orRow}>
-            <View style={styles.rule} />
-            <Muted style={{ fontSize: 12 }}>or</Muted>
-            <View style={styles.rule} />
-          </Row>
-          <Button title="Subscribe on the web" variant="secondary" onPress={buyOnWeb} busy={busy} />
-          <Muted style={{ fontSize: 12, textAlign: 'center' }}>
-            A web subscription works in the app and on fittrack.rosstoma.me.
-          </Muted>
-        </>
-      )}
-
       <Button title="Restore purchases" variant="secondary" onPress={onRestore} busy={busy} />
 
       <Muted style={styles.legal}>
@@ -260,8 +232,6 @@ const styles = StyleSheet.create({
   },
   planTitle: { color: colors.text, fontSize: 17, fontWeight: '700' },
   planPrice: { color: colors.accent, fontSize: 20, fontWeight: '800' },
-  orRow: { gap: spacing.md, paddingHorizontal: spacing.lg },
-  rule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
   legal: { fontSize: 11, textAlign: 'center' },
   link: { color: colors.textMuted, fontSize: 12, textDecorationLine: 'underline' },
   notice: {

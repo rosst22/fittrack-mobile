@@ -128,17 +128,39 @@ export default function MoreScreen() {
  * and every meal logged after ~8pm files itself under tomorrow. That exact bug
  * has shipped three times on the web app, so it gets a visible check here
  * rather than a comment hoping someone remembers.
+ *
+ * The check formats ONE fixed instant in two zones that can never agree, rather
+ * than looking at where today's boundary lands. The old version flagged any day
+ * starting at 00:00Z as broken — correct while APP_TZ was pinned to Toronto,
+ * but a false alarm for every real user in Europe/London or Atlantic/Reykjavik
+ * now that the zone comes from the device.
  */
+function intlHonoursTimeZone() {
+  try {
+    const instant = new Date('2026-07-20T12:00:00Z');
+    const toronto = instant.toLocaleString('en-US', {
+      timeZone: 'America/Toronto',
+      hour: 'numeric',
+    });
+    const tokyo = instant.toLocaleString('en-US', {
+      timeZone: 'Asia/Tokyo',
+      hour: 'numeric',
+    });
+    return toronto !== tokyo;
+  } catch {
+    return false;
+  }
+}
+
 function TimezoneCheck() {
+  if (intlHonoursTimeZone()) return null;
   const { start } = dayRange(todayStr());
-  const ok = !start.endsWith('T00:00:00.000Z');
-  if (ok) return null;
   return (
     <ErrorNote
       message={
-        `Timezone handling is broken on this device: a ${APP_TZ} day is starting at ` +
-        `${start} (UTC midnight). Day totals will be wrong for late-evening entries. ` +
-        `Hermes is ignoring the Intl timeZone option.`
+        `Timezone handling is broken on this device: Hermes is ignoring the Intl ` +
+        `timeZone option, so a ${APP_TZ} day is starting at ${start}. Day totals ` +
+        `will be wrong for late-evening entries.`
       }
     />
   );

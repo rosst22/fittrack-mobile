@@ -4,6 +4,7 @@
 // itself. The `usage` figures that come back are for display only — the app
 // never decides whether a call is allowed, it just reports what the server
 // said. Treat a 429 as authoritative even if the local counter disagrees.
+import { APP_TZ } from '@/lib/day';
 import { supabase } from '@/lib/supabase';
 
 export type Tier = 'free' | 'pro';
@@ -84,7 +85,10 @@ export function analyzeMeal(input: { image?: string; description?: string }) {
 export type CoachReply = { reply: string; usage: Usage };
 
 export function coachChat(messages: { role: 'user' | 'assistant'; content: string }[]) {
-  return invoke<CoachReply>('coach-chat', { messages });
+  // The coach's "today" has to be the user's today. The Edge Function is
+  // stateless and has no idea where the phone is, so the zone travels with the
+  // request; the server validates it and falls back on its own if it is bogus.
+  return invoke<CoachReply>('coach-chat', { messages, timeZone: APP_TZ });
 }
 
 /** Irreversible. The caller must have confirmed with the user first. */
@@ -126,17 +130,12 @@ export async function getEntitlement(): Promise<{
   };
 }
 
-/**
- * Stripe Checkout URL for web purchase, carrying the Supabase user id as
- * client_reference_id — that is how the webhook knows whose account to upgrade.
- * Returns null when no payment link is configured in this build.
- */
-export function stripeCheckoutUrl(userId: string): string | null {
-  const base = process.env.EXPO_PUBLIC_STRIPE_PAYMENT_LINK;
-  if (!base) return null;
-  const sep = base.includes('?') ? '&' : '?';
-  return `${base}${sep}client_reference_id=${encodeURIComponent(userId)}`;
-}
+// stripeCheckoutUrl() used to live here, building a Stripe Payment Link for the
+// paywall's "subscribe on the web" button. Both are gone: guideline 3.1.1
+// forbids linking to an external purchase mechanism from inside the app. The
+// stripe-webhook Edge Function stays — honouring a subscription someone bought
+// on the website is allowed under 3.1.3(b); it is only the in-app LINK to buy
+// one that is not.
 
 /** Today's call counts per feature, for the "2 of 3 left" labels. */
 export async function getUsageToday(): Promise<Record<string, number>> {

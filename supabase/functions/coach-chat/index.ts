@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
   const user = await requireUser(supabase);
   if (!user) return json({ error: 'Not signed in' }, 401);
 
-  let body: { messages?: unknown };
+  let body: { messages?: unknown; timeZone?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -53,6 +53,13 @@ Deno.serve(async (req) => {
 
   const messages = sanitizeMessages(body.messages);
   if (messages.length === 0) return json({ error: 'Say something to the coach.' }, 400);
+
+  // The caller's zone decides which rows count as "today". The client resolves
+  // it from the device (src/lib/day.ts), so a user in California asking "how am
+  // I doing today?" gets their day, not Toronto's. Validated rather than
+  // trusted: an unknown zone makes Intl throw, and a RangeError here would 500
+  // the whole request.
+  const timeZone = validTimeZone(body.timeZone);
 
   const tier = await getTier(supabase, user.id);
   let quota;
@@ -72,7 +79,7 @@ Deno.serve(async (req) => {
   if (!apiKey) return json({ error: 'AI is not configured.' }, 500);
 
   try {
-    const context = await buildContext(supabase);
+    const context = await buildContext(supabase, timeZone);
     const anthropic = new Anthropic({ apiKey });
 
     const model = modelFor('coach_chat', tier);
@@ -131,18 +138,42 @@ function sanitizeMessages(input: unknown): { role: 'user' | 'assistant'; content
     .filter((m) => m.content.trim().length > 0);
 }
 
+/**
+ * A caller-supplied IANA zone, or the default when it is missing or bogus.
+ *
+ * Intl throws a RangeError on an unknown zone, so this has to be a try/catch —
+ * and it has to happen before any query, or a client sending "Mars/Olympus"
+ * takes the whole request down with a 500.
+ */
+function validTimeZone(input: unknown): string {
+  if (typeof input === 'string' && input.includes('/')) {
+    try {
+      new Intl.DateTimeFormat('en-CA', { timeZone: input }).format(new Date());
+      return input;
+    } catch {
+      // Not a zone this runtime knows; fall through.
+    }
+  }
+  return DEFAULT_TZ;
+}
+
+const DEFAULT_TZ = 'America/Toronto';
+
 /** Today's totals, as plain text for the system prompt. */
-async function buildContext(supabase: ReturnType<typeof userClient>): Promise<string> {
-  // Day boundary in the user's zone, matching src/lib/day.ts (America/Toronto).
+async function buildContext(
+  supabase: ReturnType<typeof userClient>,
+  timeZone: string
+): Promise<string> {
+  // Day boundary in the caller's zone, matching src/lib/day.ts on the client.
   const now = new Date();
   const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Toronto',
+    timeZone,
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
   }).format(now);
   const start = new Date(`${parts}T00:00:00`);
-  const startIso = new Date(start.getTime() - tzOffsetMs(start)).toISOString();
+  const startIso = new Date(start.getTime() - tzOffsetMs(start, timeZone)).toISOString();
 
   const [meals, workouts, goals] = await Promise.all([
     supabase
@@ -194,9 +225,9 @@ async function buildContext(supabase: ReturnType<typeof userClient>): Promise<st
   ].join('\n');
 }
 
-function tzOffsetMs(date: Date): number {
+function tzOffsetMs(date: Date, timeZone: string): number {
   const dtf = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Toronto',
+    timeZone,
     hourCycle: 'h23',
     year: 'numeric',
     month: '2-digit',

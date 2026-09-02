@@ -161,13 +161,18 @@ export async function checkQuota(
 
   // Backstop against a single user running up the Anthropic bill even inside
   // their call allowance — a huge photo costs far more than a small one.
+  //
+  // The message deliberately does NOT name the dollar figure. "Daily AI spend
+  // cap ($0.04) reached" is a line from our cost model, not something a user
+  // asked to know, and it reads to anyone seeing it — an App Review tester
+  // included — like the app is broken rather than rate-limited.
   if (spent >= limits.spendUsd) {
     return {
       ok: false,
       used,
       limit,
       tier,
-      reason: `Daily AI spend cap ($${limits.spendUsd.toFixed(2)}) reached. Resets at midnight UTC.`,
+      reason: "That's all the AI for today. It resets at midnight UTC.",
     };
   }
 
